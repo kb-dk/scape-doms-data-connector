@@ -1,0 +1,13 @@
+<dsCompositeModel xmlns="info:fedora/fedora-system:def/dsCompositeModel#">
+    <dsTypeModel ID="SCAPE_FILE_TECHNICAL">
+        <form MIME="text/xml"/>
+        <extension name="SCAPE">
+            <mapsAs name="file_technical"/>
+        </extension>
+    </dsTypeModel>
+    <dsTypeModel ID="SCAPE_FILE_CONTENT">
+        <extension name="SCAPE">
+            <mapsAs name="file_content"/>
+        </extension>
+    </dsTypeModel>
+</dsCompositeModel>

@@ -1,0 +1,26 @@
+<dsCompositeModel xmlns="info:fedora/fedora-system:def/dsCompositeModel#">
+    <dsTypeModel ID="SCAPE_RIGHTS">
+        <form MIME="text/xml"/>
+        <extension name="SCAPE">
+            <mapsAs name="rights"/>
+        </extension>
+    </dsTypeModel>
+    <dsTypeModel ID="SCAPE_PROVENANCE">
+        <form MIME="text/xml"/>
+        <extension name="SCAPE">
+            <mapsAs name="provenance"/>
+        </extension>
+    </dsTypeModel>
+    <dsTypeModel ID="SCAPE_SOURCE">
+        <form MIME="text/xml"/>
+        <extension name="SCAPE">
+            <mapsAs name="source"/>
+        </extension>
+    </dsTypeModel>
+    <dsTypeModel ID="SCAPE_REPRESENTATION_TECHNICAL">
+        <form MIME="text/xml"/>
+        <extension name="SCAPE">
+            <mapsAs name="representation_technical"/>
+        </extension>
+    </dsTypeModel>
+</dsCompositeModel>
