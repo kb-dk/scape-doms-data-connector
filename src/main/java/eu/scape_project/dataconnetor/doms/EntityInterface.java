@@ -71,10 +71,7 @@ public class EntityInterface {
             profile = fedora.getObjectProfile(pid, null);
 
 
-            DSCompositeModel model = new DSCompositeModel();
-            for (String contentModel : profile.getContentModels()) {
-                model.merge(new DSCompositeModel(contentModel.replace("info:fedora/",""), fedora));
-            }
+            DSCompositeModel model = getDsCompositeModel(fedora, profile);
 
             //Build the entity
             IntellectualEntity.Builder builder = new IntellectualEntity.Builder();
@@ -306,10 +303,7 @@ public class EntityInterface {
             List<String> scapeIdentifiers = TypeUtils.formatIdentifiers(updated);
             setIdentifiers(pid, scapeIdentifiers, fedora);
 
-            DSCompositeModel model = new DSCompositeModel();
-            for (String contentModel : profile.getContentModels()) {
-                model.merge(new DSCompositeModel(contentModel, fedora));
-            }
+            DSCompositeModel model = getDsCompositeModel(fedora, profile);
             //TODO version number
 
             fedora.modifyDatastreamByValue(
@@ -360,6 +354,17 @@ public class EntityInterface {
             throw new CommunicationException(e);
         }
 
+    }
+
+    private DSCompositeModel getDsCompositeModel(EnhancedFedora fedora, ObjectProfile profile) throws
+                                                                                               BackendMethodFailedException,
+                                                                                               BackendInvalidResourceException,
+                                                                                               BackendInvalidCredsException {
+        DSCompositeModel model = new DSCompositeModel();
+        for (String contentModel : profile.getContentModels()) {
+            model.merge(new DSCompositeModel(contentModel.replace("info:fedora/",""), fedora));
+        }
+        return model;
     }
 
     private void setIdentifiers(String pid, List<String> scapeIdentifiers, EnhancedFedora fedora) {
