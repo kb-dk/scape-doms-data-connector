@@ -7,9 +7,13 @@ import dk.statsbiblioteket.doms.central.connectors.EnhancedFedora;
 import dk.statsbiblioteket.doms.central.connectors.fedora.structures.DatastreamProfile;
 import dk.statsbiblioteket.doms.central.connectors.fedora.structures.ObjectProfile;
 import eu.scape_project.dataconnetor.doms.exceptions.ParsingException;
+import eu.scape_project.model.File;
 import eu.scape_project.model.Identifier;
+import eu.scape_project.model.IntellectualEntity;
 import eu.scape_project.model.LifecycleState;
+import eu.scape_project.model.Representation;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -28,25 +32,23 @@ public class MockFedora {
                 getDC(pid, entityIdentifier, representationIdentifier, fileIdentifier));
     }
 
-    static void setObjectProfile(String pid, String title, String fileName, String mimeType, String fileUrl,
+    static void setObjectProfile(String pid, String scape_contentModel, String title, String fileName, String mimeType, String fileUrl,
                                  EnhancedFedora fedora, String scape_descriptive, String scape_lifecycle,
                                  String scape_rights, String scape_provenance, String scape_source,
                                  String scape_representation_technical, String scape_file_technical,
                                  String scape_file_content) throws
-                                                             BackendMethodFailedException,
-                                                             BackendInvalidCredsException,
-                                                             BackendInvalidResourceException {
+                                                            BackendMethodFailedException,
+                                                            BackendInvalidCredsException,
+                                                            BackendInvalidResourceException {
         ObjectProfile objectProfile = new ObjectProfile();
         objectProfile.setLabel(title);
         objectProfile.setPid(pid);
         objectProfile.setContentModels(
-                Arrays.asList(
-                        TypeUtils.ENTITY_CONTENT_MODEL,
-                        TypeUtils.REPRESENTATION_CONTENT_MODEL,
-                        TypeUtils.FILE_CONTENT_MODEL));
+                Arrays.asList("info:fedora/"+scape_contentModel));
 
 
-        List<DatastreamProfile> datastreamProfiles = new ArrayList<>(); for (String name : Arrays.asList(
+        List<DatastreamProfile> datastreamProfiles = new ArrayList<>();
+        for (String name : Arrays.asList(
                 scape_descriptive,
                 scape_lifecycle,
                 scape_rights,
@@ -73,9 +75,10 @@ public class MockFedora {
     }
 
     static void addFileDatastreams(String pid, EnhancedFedora fedora, String scape_file_technical) throws
-                                                                                                    BackendInvalidCredsException,
-                                                                                                    BackendMethodFailedException,
-                                                                                                    BackendInvalidResourceException {
+                                                                                                   BackendInvalidCredsException,
+                                                                                                   BackendMethodFailedException,
+                                                                                                   BackendInvalidResourceException,
+                                                                                                   ParsingException {
         when(fedora.getXMLDatastreamContents(eq(pid), eq(scape_file_technical), anyLong())).thenReturn(
                 getEmptyTextMD());
     }
@@ -83,9 +86,10 @@ public class MockFedora {
     static void addRepresentationDatastreams(String pid, EnhancedFedora fedora, String scape_rights,
                                              String scape_provenance, String scape_source,
                                              String scape_representation_technical) throws
-                                                                                     BackendInvalidCredsException,
-                                                                                     BackendMethodFailedException,
-                                                                                     BackendInvalidResourceException {
+                                                                                    BackendInvalidCredsException,
+                                                                                    BackendMethodFailedException,
+                                                                                    BackendInvalidResourceException,
+                                                                                    ParsingException {
         when(fedora.getXMLDatastreamContents(eq(pid), eq(scape_provenance), anyLong())).thenReturn(
                 getSimpleProvenance());
 
@@ -100,9 +104,10 @@ public class MockFedora {
 
     static void addEntityDatastreams(String pid, String title, EnhancedFedora fedora, String scape_descriptive,
                                      String scape_lifecycle) throws
-                                                              BackendInvalidCredsException,
-                                                              BackendMethodFailedException,
-                                                              BackendInvalidResourceException, ParsingException {
+                                                             BackendInvalidCredsException,
+                                                             BackendMethodFailedException,
+                                                             BackendInvalidResourceException,
+                                                             ParsingException {
         when(fedora.getXMLDatastreamContents(eq(pid), eq(scape_descriptive), anyLong())).thenReturn(
                 getDescriptive(title));
         when(
@@ -111,109 +116,90 @@ public class MockFedora {
                 getSimpleLifeCycle());
     }
 
-    static void setupContentModels(EnhancedFedora fedora, String scape_descriptive, String scape_lifecycle,
+    static void setupContentModels(EnhancedFedora fedora, String scape_contentModel_pid, String scape_descriptive, String scape_lifecycle,
                                    String scape_rights, String scape_provenance, String scape_source,
                                    String scape_representation_technical, String scape_file_technical,
                                    String scape_file_content) throws
-                                                               BackendInvalidCredsException,
-                                                               BackendMethodFailedException,
-                                                               BackendInvalidResourceException {
+                                                              BackendInvalidCredsException,
+                                                              BackendMethodFailedException,
+                                                              BackendInvalidResourceException {
         when(
                 fedora.getXMLDatastreamContents(
-                        eq(TypeUtils.ENTITY_CONTENT_MODEL), eq(DSCompositeModel.DS_COMPOSITE_MODEL))).thenReturn(
-                getEntityDsComp(scape_descriptive, scape_lifecycle));
+                        eq(scape_contentModel_pid), eq(DSCompositeModel.DS_COMPOSITE_MODEL))).thenReturn(
+                getDsComp());
 
-        when(
-                fedora.getXMLDatastreamContents(
-                        eq(TypeUtils.REPRESENTATION_CONTENT_MODEL),
-                        eq(DSCompositeModel.DS_COMPOSITE_MODEL))).thenReturn(
-                getRepresentationDsComp(scape_rights, scape_provenance, scape_source, scape_representation_technical));
+    }
 
-
-        when(
-                fedora.getXMLDatastreamContents(
-                        eq(TypeUtils.FILE_CONTENT_MODEL), eq(DSCompositeModel.DS_COMPOSITE_MODEL))).thenReturn(
-                getFileDsComp(scape_file_technical, scape_file_content));
+    public static String getDsComp() {
+        return "<dsCompositeModel xmlns=\"info:fedora/fedora-system:def/dsCompositeModel#\">\n" +
+               "    <dsTypeModel ID=\"SCAPE_DESCRIPTIVE\">\n" +
+               "        <form MIME=\"text/xml\"/>\n" +
+               "        <extension name=\"SCAPE\">\n" +
+               "            <mapsAs name=\"descriptive\"/>\n" +
+               "        </extension>\n" +
+               "    </dsTypeModel>\n" +
+               "\n" +
+               "    <dsTypeModel ID=\"SCAPE_LIFECYCLE\" optional=\"true\">\n" +
+               "        <form MIME=\"text/xml\"/>\n" +
+               "        <extension name=\"SCAPE\">\n" +
+               "            <mapsAs name=\"lifecycle\"/>\n" +
+               "        </extension>\n" +
+               "    </dsTypeModel>\n" +
+               "\n" +
+               "    <dsTypeModel ID=\"SCAPE_RIGHTS\" optional=\"true\">\n" +
+               "        <form MIME=\"text/xml\"/>\n" +
+               "        <extension name=\"SCAPE\">\n" +
+               "            <mapsAs name=\"rights\"/>\n" +
+               "        </extension>\n" +
+               "    </dsTypeModel>\n" +
+               "\n" +
+               "    <dsTypeModel ID=\"SCAPE_PROVENANCE\" optional=\"true\">\n" +
+               "        <form MIME=\"text/xml\"/>\n" +
+               "        <extension name=\"SCAPE\">\n" +
+               "            <mapsAs name=\"provenance\"/>\n" +
+               "        </extension>\n" +
+               "    </dsTypeModel>\n" +
+               "\n" +
+               "    <dsTypeModel ID=\"SCAPE_SOURCE\" optional=\"true\">\n" +
+               "        <form MIME=\"text/xml\"/>\n" +
+               "        <extension name=\"SCAPE\">\n" +
+               "            <mapsAs name=\"source\"/>\n" +
+               "        </extension>\n" +
+               "    </dsTypeModel>\n" +
+               "\n" +
+               "    <dsTypeModel ID=\"SCAPE_REPRESENTATION_TECHNICAL\" optional=\"true\">\n" +
+               "        <form MIME=\"text/xml\"/>\n" +
+               "        <extension name=\"SCAPE\">\n" +
+               "            <mapsAs name=\"representation_technical\"/>\n" +
+               "        </extension>\n" +
+               "    </dsTypeModel>\n" +
+               "\n" +
+               "    <dsTypeModel ID=\"SCAPE_FILE_TECHNICAL\" optional=\"true\">\n" +
+               "        <form MIME=\"text/xml\"/>\n" +
+               "        <extension name=\"SCAPE\">\n" +
+               "            <mapsAs name=\"file_technical\"/>\n" +
+               "        </extension>\n" +
+               "    </dsTypeModel>\n" +
+               "\n" +
+               "    <dsTypeModel ID=\"SCAPE_FILE_CONTENT\">\n" +
+               "        <extension name=\"SCAPE\">\n" +
+               "            <mapsAs name=\"file_content\"/>\n" +
+               "        </extension>\n" +
+               "    </dsTypeModel>\n" +
+               "\n" +
+               "</dsCompositeModel>\n";
     }
 
     static String getDC(String pid, String entityIdentifier, String representationIdentifier, String fileIdentifier) {
-        return "<oai_dc:dc xmlns:oai_dc=\"http://www.openarchives.org/OAI/2.0/oai_dc/\" xmlns:dc=\"http://purl.org/dc/elements/1.1/\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://www.openarchives.org/OAI/2.0/oai_dc/ http://www.openarchives.org/OAI/2.0/oai_dc.xsd\">\n" +
-        "  <dc:identifier>" + pid + "</dc:identifier>\n" +
-        "  <dc:identifier>" + TypeUtils.formatEntityIdentifier(new Identifier(entityIdentifier)) + "</dc:identifier>\n" +
-        "  <dc:identifier>" + TypeUtils.formatRepresentationIdentifier(new Identifier(representationIdentifier)) + "</dc:identifier>\n" +
-        "  <dc:identifier>" + TypeUtils.formatFileIdentifier(new Identifier(fileIdentifier)) + "</dc:identifier>\n" +
-        "</oai_dc:dc>";
+        return "<oai_dc:dc xmlns:oai_dc=\"http://www.openarchives.org/OAI/2.0/oai_dc/\" xmlns:dc=\"http://purl.org/dc/elements/1.1/\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://www.openarchives.org/OAI/2.0/oai_dc/ http://www.openarchives.org/OAI/2.0/oai_dc.xsd\">" +
+               "  <dc:identifier>" + pid + "</dc:identifier>" +
+               "  <dc:identifier>" + TypeUtils.formatEntityIdentifier(new Identifier(entityIdentifier)) + "</dc:identifier>" +
+               "  <dc:identifier>" + TypeUtils.formatRepresentationIdentifier(new Identifier(representationIdentifier)) + "</dc:identifier>" +
+               "  <dc:identifier>" + TypeUtils.formatFileIdentifier(new Identifier(fileIdentifier)) + "</dc:identifier>" +
+               "</oai_dc:dc>";
     }
 
-    static String getFileDsComp(String scape_file_technical, String scape_file_content) {
-        return "<dsCompositeModel xmlns=\"info:fedora/fedora-system:def/dsCompositeModel#\">\n" +
-        "    <dsTypeModel ID=\"" + scape_file_technical + "\">\n" +
-        "        <form MIME=\"text/xml\"/>\n" +
-        "        <extension name=\"SCAPE\">\n" +
-        "            <mapsAs name=\"file_technical\"/>\n" +
-        "        </extension>\n" +
-        "    </dsTypeModel>\n" +
-        "\n" +
-        "    <dsTypeModel ID=\"" + scape_file_content + "\">\n" +
-        "        <extension name=\"SCAPE\">\n" +
-        "            <mapsAs name=\"file_content\"/>\n" +
-        "        </extension>\n" +
-        "    </dsTypeModel>\n" +
-        "\n             " +
-        " </dsCompositeModel>\n ";
-    }
-
-    static String getRepresentationDsComp(String scape_rights, String scape_provenance, String scape_source,
-                                           String scape_representation_technical) {
-        return "<dsCompositeModel xmlns=\"info:fedora/fedora-system:def/dsCompositeModel#\">\n" +
-        "    <dsTypeModel ID=\"" + scape_rights + "\">\n" +
-        "        <form MIME=\"text/xml\"/>\n" +
-        "        <extension name=\"SCAPE\">\n" +
-        "            <mapsAs name=\"rights\"/>\n" +
-        "        </extension>\n" +
-        "    </dsTypeModel>\n" +
-        "\n" +
-        "    <dsTypeModel ID=\"" + scape_provenance + "\">\n" +
-        "        <form MIME=\"text/xml\"/>\n" +
-        "        <extension name=\"SCAPE\">\n" +
-        "            <mapsAs name=\"provenance\"/>\n" +
-        "        </extension>\n" +
-        "    </dsTypeModel>\n" +
-        "\n" +
-        "    <dsTypeModel ID=\"" + scape_source + "\">\n" +
-        "        <form MIME=\"text/xml\"/>\n" +
-        "        <extension name=\"SCAPE\">\n" +
-        "            <mapsAs name=\"source\"/>\n" +
-        "        </extension>\n" +
-        "    </dsTypeModel>\n" +
-        "\n" +
-        "    <dsTypeModel ID=\"" + scape_representation_technical + "\">\n" +
-        "        <form MIME=\"text/xml\"/>\n" +
-        "        <extension name=\"SCAPE\">\n" +
-        "            <mapsAs name=\"representation_technical\"/>\n" +
-        "        </extension>\n" +
-        "    </dsTypeModel>\n" +
-        "</dsCompositeModel>\n";
-    }
-
-    static String getEntityDsComp(String scape_descriptive, String scape_lifecycle) {
-        return "<dsCompositeModel xmlns=\"info:fedora/fedora-system:def/dsCompositeModel#\">\n" +
-        "    <dsTypeModel ID=\"" + scape_descriptive + "\">\n" +
-        "        <form MIME=\"text/xml\"/>\n" +
-        "        <extension name=\"SCAPE\">\n" +
-        "            <mapsAs name=\"descriptive\"/>\n" +
-        "        </extension>\n" +
-        "    </dsTypeModel>\n" +
-        "    <dsTypeModel ID=\"" + scape_lifecycle + "\">\n" +
-        "        <form MIME=\"text/xml\"/>\n" +
-        "        <extension name=\"SCAPE\">\n" +
-        "            <mapsAs name=\"lifecycle\"/>\n" +
-        "        </extension>\n" +
-        "    </dsTypeModel>\n" +
-        "</dsCompositeModel>\n";
-    }
-
-     static DatastreamProfile makeManagedDatastream(String pid, String id) {
+    static DatastreamProfile makeManagedDatastream(String pid, String id) {
         DatastreamProfile managed = new DatastreamProfile();
         managed.setID(id);
         managed.setMimeType("text/xml");
@@ -221,50 +207,81 @@ public class MockFedora {
         return managed;
     }
 
-     static String getSimpleSource() {
-        return " <dc:dublin-core xmlns:dc=\"http://purl.org/dc/elements/1.1/\">\n" +
-               "                        <dc:title>Source object 1</dc:title>\n" +
-               "                    </dc:dublin-core>";
+    static String getSimpleSource() throws ParsingException {
+        return XmlUtils.toString(XmlUtils.toObject( " <dc:dublin-core xmlns:dc=\"http://purl.org/dc/elements/1.1/\">" +
+               "                        <dc:title>Source object 1</dc:title>" +
+               "                    </dc:dublin-core>"));
     }
 
-     static String getDescriptive(String title) {
-        return "<dc:dublin-core xmlns:dc=\"http://purl.org/dc/elements/1.1/\">\n" +
-               " <dc:title>" + title + "</dc:title>\n" +
-               "</dc:dublin-core>\n";
+    static String getDescriptive(String title) {
+        return "<dc:dublin-core xmlns:mets=\"http://www.loc.gov/METS/\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns:scape=\"http://scape-project.eu/model\" xmlns:dc=\"http://purl.org/dc/elements/1.1/\" xmlns:premis=\"info:lc/xmlns/premis-v2\" xmlns:textmd=\"info:lc/xmlns/textmd-v3\" xmlns:fits=\"http://hul.harvard.edu/ois/xml/ns/fits/fits_output\" xmlns:ns9=\"http://www.loc.gov/mix/v20\" xmlns:gbs=\"http://books.google.com/gbs\" xmlns:vmd=\"http://www.loc.gov/videoMD/\" xmlns:ns12=\"http://www.loc.gov/audioMD/\" xmlns:marc=\"http://www.loc.gov/MARC21/slim\"><dc:title>" + title + "</dc:title></dc:dublin-core>";
     }
 
-     static String getSimpleLifeCycle() throws ParsingException {
+    static String getSimpleLifeCycle() throws ParsingException {
         return XmlUtils.toString(
                 new LifecycleState(
                         "details", LifecycleState.State.INGESTED));
     }
 
-     static String getSimpleProvenance() {
-        return "                    <premis:premis version=\"2.2\" xmlns:premis=\"info:lc/xmlns/premis-v2\" xmlns:xlink=\"http://www.w3.org/1999/xlink\">\n" +
-               "                        <premis:event>\n" +
-               "                            <premis:eventType>INGEST</premis:eventType>\n" +
-               "                            <premis:eventDetail>inital ingest</premis:eventDetail>\n" +
-               "                            <premis:linkingAgentIdentifier xlink:role=\"CREATOR\" xlink:title=\"Testman Testrevicz\"/>\n" +
-               "                        </premis:event>\n" +
-               "                    </premis:premis>\n";
+    static String getSimpleProvenance() throws ParsingException {
+        return XmlUtils.toString(XmlUtils.toObject(
+         "                    <premis:premis version=\"2.2\" xmlns:premis=\"info:lc/xmlns/premis-v2\" xmlns:xlink=\"http://www.w3.org/1999/xlink\">" +
+               "                        <premis:event>" +
+               "                            <premis:eventType>INGEST</premis:eventType>" +
+               "                            <premis:eventDetail>inital ingest</premis:eventDetail>" +
+               "                            <premis:linkingAgentIdentifier xlink:role=\"CREATOR\" xlink:title=\"Testman Testrevicz\"/>" +
+               "                        </premis:event>" +
+               "                    </premis:premis>"));
     }
 
-     static String getSimpleRights() {
-        return "                    <premis:rights xmlns:premis=\"info:lc/xmlns/premis-v2\">\n" +
-               "                        <premis:rightsStatement>\n" +
-               "                            <premis:copyrightInformation>\n" +
-               "<premis:copyrightStatus>no copyright</premis:copyrightStatus>\n" +
-               "<premis:copyrightJurisdiction>de</premis:copyrightJurisdiction>\n" +
-               "                            </premis:copyrightInformation>\n" +
-               "                        </premis:rightsStatement>\n" +
-               "                    </premis:rights>\n";
+    static String getSimpleRights() throws ParsingException {
+        return XmlUtils.toString(XmlUtils.toObject( "                    <premis:rights xmlns:premis=\"info:lc/xmlns/premis-v2\">" +
+               "                        <premis:rightsStatement>" +
+               "                            <premis:copyrightInformation>" +
+               "<premis:copyrightStatus>no copyright</premis:copyrightStatus>" +
+               "<premis:copyrightJurisdiction>de</premis:copyrightJurisdiction>" +
+               "                            </premis:copyrightInformation>" +
+               "                        </premis:rightsStatement>" +
+               "                    </premis:rights>"));
     }
 
-     static String getEmptyTextMD() {
-        return "<textmd:textMD xmlns:textmd=\"info:lc/xmlns/textmd-v3\">\n" +
-               "<textmd:encoding>\n" +
-               "<textmd:encoding_platform linebreak=\"LF\"/>\n" +
-               "</textmd:encoding>\n" +
-               "</textmd:textMD>";
+    static String getEmptyTextMD() throws ParsingException {
+        return XmlUtils.toString(XmlUtils.toObject( "<textmd:textMD xmlns:textmd=\"info:lc/xmlns/textmd-v3\">" +
+               "<textmd:encoding>" +
+               "<textmd:encoding_platform linebreak=\"LF\"/>" +
+               "</textmd:encoding>" +
+               "</textmd:textMD>"));
     }
+
+    public static IntellectualEntity buildNewEntity(String entityIdentifier, String representationIdentifier,
+                                                    String fileIdentifier, String title, String repTitle, URI fileUri,
+                                                    String mimetype, String filename) throws ParsingException {
+        IntellectualEntity.Builder builder = new IntellectualEntity.Builder();
+        builder.identifier(new Identifier(entityIdentifier));
+        builder.descriptive(XmlUtils.toObject(getDescriptive(title)));
+        builder.lifecycleState(
+                new LifecycleState(
+                        "details", LifecycleState.State.INGESTED));
+        Representation.Builder repBuilder = new Representation.Builder();
+        repBuilder.title(repTitle);
+        repBuilder.identifier(new Identifier(representationIdentifier));
+        repBuilder.rights(XmlUtils.toObject(getSimpleRights()));
+        repBuilder.technical(XmlUtils.toObject(getEmptyTextMD()));
+        repBuilder.provenance(XmlUtils.toObject(getSimpleProvenance()));
+        repBuilder.source(XmlUtils.toObject(getSimpleSource()));
+
+        File.Builder fileBuilder = new File.Builder();
+        fileBuilder.uri(fileUri);
+        fileBuilder.mimetype(mimetype);
+        fileBuilder.filename(filename);
+        fileBuilder.identifier(new Identifier(fileIdentifier));
+        fileBuilder.technical(XmlUtils.toObject(getEmptyTextMD()));
+        repBuilder.files(Arrays.asList(fileBuilder.build()));
+        builder.representations(Arrays.asList(repBuilder.build()));
+        return builder.build();
+
+
+    }
+
+
 }

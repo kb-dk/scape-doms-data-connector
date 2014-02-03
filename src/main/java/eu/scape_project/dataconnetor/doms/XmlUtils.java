@@ -32,6 +32,14 @@ public class XmlUtils {
         }
     }
 
+    public static <T> T toObject(String contents) throws ParsingException {
+        return toObject(stream(contents));
+    }
+
+    private static InputStream stream(String contents) {
+        return new ByteArrayInputStream(contents.getBytes());
+    }
+
     public static <T> T toObject(InputStream contents) throws ParsingException {
         if (contents == null){
             return null;

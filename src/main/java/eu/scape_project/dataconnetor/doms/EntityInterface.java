@@ -23,20 +23,22 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 public class EntityInterface {
 
 
-    private static final String HASMODEL = "hasModelPredicate";
+    public static final String HASMODEL = "hasModelPredicate";
     private List<String> collections;
     private EnhancedFedora enhancedFedora;
+    private String scape_content_model;
 
 
-    public EntityInterface(EnhancedFedora enhancedFedora) {
+    public EntityInterface(List<String> collections, EnhancedFedora enhancedFedora, String scape_content_model) {
+        this.collections = collections;
         this.enhancedFedora = enhancedFedora;
+        this.scape_content_model = scape_content_model;
     }
 
     /**
@@ -66,71 +68,68 @@ public class EntityInterface {
 
             ObjectProfile profile = null;
 
-                profile = fedora.getObjectProfile(pid, null);
+            profile = fedora.getObjectProfile(pid, null);
 
-            if (TypeUtils.isIntellectualEntity(profile)) {
 
-                DSCompositeModel model = new DSCompositeModel();
-                for (String contentModel : profile.getContentModels()) {
-                    model.merge(new DSCompositeModel(contentModel, fedora));
-                }
-
-                //Build the entity
-                IntellectualEntity.Builder builder = new IntellectualEntity.Builder();
-                String descriptiveContent = fedora.getXMLDatastreamContents(pid, model.getDescriptive(), null);
-                builder.descriptive(XmlUtils.toObject(stream(descriptiveContent)));
-                builder.identifier(new Identifier(TypeUtils.pickEntityIdentifier(identifiers)));
-
-                String lifeCycleContents = fedora.getXMLDatastreamContents(pid, model.getLifeCycle(), null);
-                LifecycleState o = XmlUtils.toObject(stream(lifeCycleContents));
-                builder.lifecycleState(o);
-                //TODO version number
-
-                if (TypeUtils.isRepresentation(profile)) {
-                    //Build the representation
-                    Representation.Builder rep_builder = new Representation.Builder();
-                    rep_builder.identifier(new Identifier(TypeUtils.pickRepresentationIdentifier(identifiers)));
-
-                    String representationTechnical = fedora.getXMLDatastreamContents(
-                            pid, model.getRepresentationTechnical(), null);
-                    rep_builder.technical(XmlUtils.toObject(stream(representationTechnical)));
-
-                    String rights = fedora.getXMLDatastreamContents(pid, model.getRights(), null);
-                    rep_builder.rights(XmlUtils.toObject(stream(rights)));
-
-                    String source = fedora.getXMLDatastreamContents(pid, model.getSource(), null);
-                    rep_builder.source(XmlUtils.toObject(stream(source)));
-
-                    String provenance = fedora.getXMLDatastreamContents(pid, model.getProvenance(), null);
-                    rep_builder.provenance(XmlUtils.toObject(stream(provenance)));
-
-                    rep_builder.title(profile.getLabel());
-
-                    if (TypeUtils.isFile(profile)) {
-                        //Build the File
-                        File.Builder file_builder = new File.Builder();
-                        file_builder.identifier(new Identifier(TypeUtils.pickFileIdentifier(identifiers)));
-
-                        String fileTechnical = fedora.getXMLDatastreamContents(pid, model.getFileTechnical(), null);
-                        file_builder.technical(XmlUtils.toObject(stream(fileTechnical)));
-
-                        String contentDatastreamName = model.getFileContent();
-                        for (DatastreamProfile datastreamProfile : profile.getDatastreams()) {
-                            if (datastreamProfile.getID().equals(contentDatastreamName)) {
-                                file_builder.filename(datastreamProfile.getLabel());
-                                file_builder.mimetype(datastreamProfile.getMimeType());
-                                file_builder.uri(URI.create(datastreamProfile.getUrl()));
-                            }
-                        }
-                        //Build the bitstreams
-                        rep_builder.files(Arrays.asList(file_builder.build()));
-                    }
-                    builder.representations(Arrays.asList(rep_builder.build()));
-                }
-                return builder.build();
-            } else {
-                throw new ParsingException();
+            DSCompositeModel model = new DSCompositeModel();
+            for (String contentModel : profile.getContentModels()) {
+                model.merge(new DSCompositeModel(contentModel.replace("info:fedora/",""), fedora));
             }
+
+            //Build the entity
+            IntellectualEntity.Builder builder = new IntellectualEntity.Builder();
+            String descriptiveContent = fedora.getXMLDatastreamContents(pid, model.getDescriptive(), null);
+            builder.descriptive(XmlUtils.toObject(stream(descriptiveContent)));
+            builder.identifier(new Identifier(TypeUtils.pickEntityIdentifier(identifiers)));
+
+            String lifeCycleContents = fedora.getXMLDatastreamContents(pid, model.getLifeCycle(), null);
+            LifecycleState o = XmlUtils.toObject(stream(lifeCycleContents));
+            builder.lifecycleState(o);
+            //TODO version number
+
+
+            //Build the representation
+            Representation.Builder rep_builder = new Representation.Builder();
+            rep_builder.identifier(new Identifier(TypeUtils.pickRepresentationIdentifier(identifiers)));
+
+            String representationTechnical = fedora.getXMLDatastreamContents(
+                    pid, model.getRepresentationTechnical(), null);
+            rep_builder.technical(XmlUtils.toObject(stream(representationTechnical)));
+
+            String rights = fedora.getXMLDatastreamContents(pid, model.getRights(), null);
+            rep_builder.rights(XmlUtils.toObject(stream(rights)));
+
+            String source = fedora.getXMLDatastreamContents(pid, model.getSource(), null);
+            rep_builder.source(XmlUtils.toObject(stream(source)));
+
+            String provenance = fedora.getXMLDatastreamContents(pid, model.getProvenance(), null);
+            rep_builder.provenance(XmlUtils.toObject(stream(provenance)));
+
+            rep_builder.title(profile.getLabel());
+
+
+            //Build the File
+            File.Builder file_builder = new File.Builder();
+            file_builder.identifier(new Identifier(TypeUtils.pickFileIdentifier(identifiers)));
+
+            String fileTechnical = fedora.getXMLDatastreamContents(pid, model.getFileTechnical(), null);
+            file_builder.technical(XmlUtils.toObject(stream(fileTechnical)));
+
+            String contentDatastreamName = model.getFileContent();
+            for (DatastreamProfile datastreamProfile : profile.getDatastreams()) {
+                if (datastreamProfile.getID().equals(contentDatastreamName)) {
+                    file_builder.filename(datastreamProfile.getLabel());
+                    file_builder.mimetype(datastreamProfile.getMimeType());
+                    file_builder.uri(URI.create(datastreamProfile.getUrl()));
+                }
+            }
+            //Build the bitstreams
+            rep_builder.files(Arrays.asList(file_builder.build()));
+
+            builder.representations(Arrays.asList(rep_builder.build()));
+
+            return builder.build();
+
         } catch (BackendMethodFailedException e) {
             throw new CommunicationException(e);
         } catch (BackendInvalidResourceException e) {
@@ -145,9 +144,6 @@ public class EntityInterface {
         //Second, Find the mapping between each datastream and scape field
 
     }
-
-
-
 
 
     /**
@@ -189,7 +185,7 @@ public class EntityInterface {
             if (!existingObject.isEmpty()) {
                 throw new AlreadyExistsException(existingObject.get(0));
             }
-            List<String> contentModels = checkEntity(entity);
+
 
 
             List<String> scapeIdentifiers = TypeUtils.formatIdentifiers(entity);
@@ -197,11 +193,9 @@ public class EntityInterface {
             //We have a new object here, with the identifiers
             String pid = fedora.newEmptyObject(scapeIdentifiers, getCollections(), logmessage);
             //add the content models
-            fedora.addRelations(pid, pid, HASMODEL, contentModels, false, logmessage);
-            DSCompositeModel model = new DSCompositeModel();
-            for (String contentModel : contentModels) {
-                model.merge(new DSCompositeModel(contentModel, fedora));
-            }
+            fedora.addRelation(pid,"info:fedora/"+ pid, HASMODEL, "info:fedora/"+scape_content_model, false, logmessage);
+            DSCompositeModel model = new DSCompositeModel(scape_content_model, fedora);
+
             //TODO version number
             fedora.modifyDatastreamByValue(
                     pid, model.getLifeCycle(), XmlUtils.toString(entity.getLifecycleState()), null, logmessage);
@@ -263,26 +257,26 @@ public class EntityInterface {
      * @return a list of content models needed by the object in doms
      * @throws ParsingException
      */
-    private List<String> checkEntity(IntellectualEntity entity) throws ParsingException {
-        List<String> result = new ArrayList<>();
-        result.add(TypeUtils.ENTITY_CONTENT_MODEL);
-        if (entity.getRepresentations().size() > 1) {
-            throw new ParsingException("You can only have one representation");
-        }
-        for (Representation representation : entity.getRepresentations()) {
-            result.add(TypeUtils.REPRESENTATION_CONTENT_MODEL);
-            if (representation.getFiles().size() > 1) {
-                throw new ParsingException("You can only have one file per representation");
+    private void checkEntity(IntellectualEntity entity) throws ParsingException {
+        if (entity.getRepresentations() != null) {
+            if (entity.getRepresentations().size() > 1) {
+                throw new ParsingException("You can only have one representation");
             }
-            for (File file : representation.getFiles()) {
-                result.add(TypeUtils.FILE_CONTENT_MODEL);
-                if (!file.getBitStreams().isEmpty()) {
-                    throw new ParsingException("Bitststreams not supported");
+            for (Representation representation : entity.getRepresentations()) {
+                if (representation.getFiles() != null) {
+                    if (representation.getFiles().size() > 1) {
+                        throw new ParsingException("You can only have one file per representation");
+                    }
+                    for (File file : representation.getFiles()) {
+                        if (file.getBitStreams() != null) {
+                            if (!file.getBitStreams().isEmpty()) {
+                                throw new ParsingException("Bitststreams not supported");
+                            }
+                        }
+                    }
                 }
             }
         }
-        return result;
-
     }
 
 
@@ -307,26 +301,19 @@ public class EntityInterface {
                 throw new NotFoundException();
             }
 
-            IntellectualEntity existing = read(pid);
-            List<String> contentModels = updateContentModels(pid, updated, fedora, logmessage, existing);
-
+            ObjectProfile profile = fedora.getObjectProfile(pid, null);
 
             List<String> scapeIdentifiers = TypeUtils.formatIdentifiers(updated);
-            //add the content models
             setIdentifiers(pid, scapeIdentifiers, fedora);
 
             DSCompositeModel model = new DSCompositeModel();
-            for (String contentModel : contentModels) {
+            for (String contentModel : profile.getContentModels()) {
                 model.merge(new DSCompositeModel(contentModel, fedora));
             }
             //TODO version number
 
             fedora.modifyDatastreamByValue(
-                    pid,
-                    model.getLifeCycle(),
-                    XmlUtils.toString(updated.getLifecycleState()),
-                    null,
-                    logmessage);
+                    pid, model.getLifeCycle(), XmlUtils.toString(updated.getLifecycleState()), null, logmessage);
 
 
             fedora.modifyDatastreamByValue(
@@ -379,28 +366,6 @@ public class EntityInterface {
         //TODO
     }
 
-    private List<String> updateContentModels(String pid, IntellectualEntity updated, EnhancedFedora fedora,
-                                             String logmessage, IntellectualEntity existing) throws
-                                                                                             ParsingException,
-                                                                                             BackendMethodFailedException,
-                                                                                             BackendInvalidResourceException,
-                                                                                             BackendInvalidCredsException {
-        List<String> contentModels = checkEntity(updated);
-
-
-        List<String> existingContentModels = checkEntity(existing);
-
-        ArrayList<String> toRemove = new ArrayList<>(existingContentModels);
-        toRemove.removeAll(contentModels);
-        for (String contentModel : toRemove) {
-            fedora.deleteRelation(pid, pid, HASMODEL, contentModel, false, logmessage);
-        }
-
-        ArrayList<String> toAdd = new ArrayList<>(contentModels);
-        toAdd.removeAll(existingContentModels);
-        fedora.addRelations(pid, pid, HASMODEL, toAdd, false, logmessage);
-        return contentModels;
-    }
 
 
     public List<String> getCollections() {

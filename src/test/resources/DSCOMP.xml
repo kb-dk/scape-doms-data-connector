@@ -5,42 +5,43 @@
             <mapsAs name="descriptive"/>
         </extension>
     </dsTypeModel>
-    <dsTypeModel ID="SCAPE_RIGHTS">
-        <form MIME="text/xml"/>
-        <extension name="SCAPE">
-            <mapsAs name="rights"/>
-        </extension>
-    </dsTypeModel>
 
-    <dsTypeModel ID="SCAPE_LIFECYCLE">
+    <dsTypeModel ID="SCAPE_LIFECYCLE" optional="true">
         <form MIME="text/xml"/>
         <extension name="SCAPE">
             <mapsAs name="lifecycle"/>
         </extension>
     </dsTypeModel>
 
-    <dsTypeModel ID="SCAPE_PROVENANCE">
+    <dsTypeModel ID="SCAPE_RIGHTS" optional="true">
+        <form MIME="text/xml"/>
+        <extension name="SCAPE">
+            <mapsAs name="rights"/>
+        </extension>
+    </dsTypeModel>
+
+    <dsTypeModel ID="SCAPE_PROVENANCE" optional="true">
         <form MIME="text/xml"/>
         <extension name="SCAPE">
             <mapsAs name="provenance"/>
         </extension>
     </dsTypeModel>
 
-    <dsTypeModel ID="SCAPE_SOURCE">
+    <dsTypeModel ID="SCAPE_SOURCE" optional="true">
         <form MIME="text/xml"/>
         <extension name="SCAPE">
             <mapsAs name="source"/>
         </extension>
     </dsTypeModel>
 
-    <dsTypeModel ID="SCAPE_REPRESENTATION_TECHNICAL">
+    <dsTypeModel ID="SCAPE_REPRESENTATION_TECHNICAL" optional="true">
         <form MIME="text/xml"/>
         <extension name="SCAPE">
             <mapsAs name="representation_technical"/>
         </extension>
     </dsTypeModel>
 
-    <dsTypeModel ID="SCAPE_FILE_TECHNICAL">
+    <dsTypeModel ID="SCAPE_FILE_TECHNICAL" optional="true">
         <form MIME="text/xml"/>
         <extension name="SCAPE">
             <mapsAs name="file_technical"/>
