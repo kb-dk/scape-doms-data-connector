@@ -8,6 +8,7 @@
     <artifactId>scape-doms-data-connector</artifactId>
     <version>1.0-SNAPSHOT</version>
 
+    <packaging>war</packaging>
 
     <dependencies>
 
@@ -92,9 +93,9 @@
             <version>1.18</version>
         </dependency>
         <dependency>
-            <groupId>com.sun.jersey</groupId>
-            <artifactId>jersey-</artifactId>
-            <version>1.18</version>
+        	<groupId>com.sun.jersey.contribs</groupId>
+        	<artifactId>jersey-multipart</artifactId>
+        	<version>1.18</version>
         </dependency>
 
         <dependency>
@@ -107,23 +108,6 @@
             <artifactId>servlet-api</artifactId>
             <version>2.5</version>
             <scope>provided</scope>
-        </dependency>
-
-
-        <dependency>
-            <groupId>dk.statsbiblioteket.sbutil</groupId>
-            <artifactId>sbutil-common</artifactId>
-            <version>0.5.14</version>
-            <exclusions>
-                <exclusion>
-                    <artifactId>log4j</artifactId>
-                    <groupId>log4j</groupId>
-                </exclusion>
-                <exclusion>
-                    <groupId>commons-logging</groupId>
-                    <artifactId>commons-logging</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.testng</groupId>

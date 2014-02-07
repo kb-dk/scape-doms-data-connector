@@ -1,6 +1,6 @@
 package eu.scape_project.dataconnetor.doms.exceptions;
 
-public class ParsingException extends Exception {
+public class ParsingException extends MyException {
     public ParsingException(Exception e) {
         super(e);
     }

@@ -81,7 +81,7 @@ public class EntityInterfaceTest {
                 scape_content_model);
         EntityInterface entityInterface = new EntityInterface(collections, fedora, scape_content_model);
 
-        IntellectualEntity entity = entityInterface.read(pid);
+        IntellectualEntity entity = entityInterface.read(pid,true);
 
         XMLUnit.setIgnoreWhitespace(true);
         XMLAssert.assertXMLEqual(
@@ -92,7 +92,7 @@ public class EntityInterfaceTest {
 
         for (Representation representation : entity.getRepresentations()) {
             XMLAssert.assertXMLEqual(
-                    MockFedora.getEmptyTextMD(), XmlUtils.toString(representation.getTechnical()));
+                    MockFedora.getEmptyTextMD(), XmlUtils.toString(representation.getTechnical().getContent().get(0).getContents()));
 
             XMLAssert.assertXMLEqual(
                     MockFedora.getSimpleSource(), XmlUtils.toString(representation.getSource()));
@@ -104,7 +104,7 @@ public class EntityInterfaceTest {
                     MockFedora.getSimpleProvenance(), XmlUtils.toString(representation.getProvenance()));
             for (File file : representation.getFiles()) {
                 XMLAssert.assertXMLEqual(
-                        MockFedora.getEmptyTextMD(), XmlUtils.toString(file.getTechnical()));
+                        MockFedora.getEmptyTextMD(), XmlUtils.toString(file.getTechnical().getContent().get(0).getContents()));
                 Assert.assertEquals(file.getFilename(), fileName);
                 Assert.assertEquals(file.getMimetype(), mimeType);
                 Assert.assertEquals(file.getUri(), URI.create(fileUrl));
@@ -166,7 +166,9 @@ public class EntityInterfaceTest {
                 null,
                 URI.create(fileUrl),
                 mimeType,
-                fileName);
+                fileName,
+                scape_file_technical,
+                scape_representation_technical);
 
         String expectedPid = "uuid:" + UUID.randomUUID().toString();
         when(fedora.newEmptyObject(anyList(), anyList(), anyString())).thenReturn(expectedPid);
@@ -227,7 +229,7 @@ public class EntityInterfaceTest {
             verify(fedora).modifyDatastreamByValue(
                     eq(expectedPid),
                     eq(scape_representation_technical),
-                    eq(XmlUtils.toString(representation.getTechnical())),
+                    eq(XmlUtils.toString(representation.getTechnical().getContent().get(0).getContents())),
                     anyList(),
                     anyString());
             verify(fedora).modifyObjectLabel(anyString(), eq(representation.getTitle()), anyString());
@@ -235,7 +237,7 @@ public class EntityInterfaceTest {
                 verify(fedora).modifyDatastreamByValue(
                         eq(expectedPid),
                         eq(scape_file_technical),
-                        eq(XmlUtils.toString(file.getTechnical())),
+                        eq(XmlUtils.toString(file.getTechnical().getContent().get(0).getContents())),
                         anyList(),
                         anyString());
                 verify(fedora).addExternalDatastream(
@@ -297,7 +299,7 @@ public class EntityInterfaceTest {
 
         EntityInterface entityInterface = new EntityInterface(collections, fedora, scape_content_model);
 
-        IntellectualEntity entity = entityInterface.read(pid);
+        IntellectualEntity entity = entityInterface.read(pid, true);
 
 
         fedora = mock(EnhancedFedora.class);
@@ -368,7 +370,7 @@ public class EntityInterfaceTest {
             verify(fedora).modifyDatastreamByValue(
                     eq(pid),
                     eq(scape_representation_technical),
-                    eq(XmlUtils.toString(representation.getTechnical())),
+                    eq(XmlUtils.toString(representation.getTechnical().getContent().get(0).getContents())),
                     anyList(),
                     anyString());
             verify(fedora).modifyObjectLabel(anyString(), eq(representation.getTitle()), anyString());
@@ -376,7 +378,7 @@ public class EntityInterfaceTest {
                 verify(fedora).modifyDatastreamByValue(
                         eq(pid),
                         eq(scape_file_technical),
-                        eq(XmlUtils.toString(file.getTechnical())),
+                        eq(XmlUtils.toString(file.getTechnical().getContent().get(0).getContents())),
                         anyList(),
                         anyString());
                 verify(fedora).addExternalDatastream(

@@ -17,6 +17,8 @@ import eu.scape_project.model.Identifier;
 import eu.scape_project.model.IntellectualEntity;
 import eu.scape_project.model.LifecycleState;
 import eu.scape_project.model.Representation;
+import eu.scape_project.model.TechnicalMetadata;
+import eu.scape_project.model.TechnicalMetadataList;
 
 import javax.xml.bind.JAXBException;
 import java.io.ByteArrayInputStream;
@@ -44,7 +46,8 @@ public class EntityInterface {
     /**
      * This method reads an object as an intellectual entity and returns this
      *
-     * @param pid the pid of the object
+     * @param pid        the pid of the object
+     * @param references
      *
      * @return the parsed entity
      * @throws BackendInvalidResourceException
@@ -55,11 +58,11 @@ public class EntityInterface {
      * @throws PIDGeneratorException
      * @throws MalformedURLException
      */
-    public IntellectualEntity read(String pid) throws
-                                               CommunicationException,
-                                               UnauthorizedException,
-                                               NotFoundException,
-                                               ParsingException {
+    public IntellectualEntity read(String pid, boolean references) throws
+                                                                   CommunicationException,
+                                                                   UnauthorizedException,
+                                                                   NotFoundException,
+                                                                   ParsingException {
         EnhancedFedora fedora = getEnhancedFedora();
 
         List<String> identifiers = null;
@@ -89,9 +92,13 @@ public class EntityInterface {
             Representation.Builder rep_builder = new Representation.Builder();
             rep_builder.identifier(new Identifier(TypeUtils.pickRepresentationIdentifier(identifiers)));
 
-            String representationTechnical = fedora.getXMLDatastreamContents(
-                    pid, model.getRepresentationTechnical(), null);
-            rep_builder.technical(XmlUtils.toObject(stream(representationTechnical)));
+            for (String representationTechnicalDatastream : model.getRepresentationTechnical()) {
+                String representationTechnical = fedora.getXMLDatastreamContents(
+                        pid, representationTechnicalDatastream, null);
+                rep_builder.technical(
+                        representationTechnicalDatastream, XmlUtils.toObject(stream(representationTechnical)));
+
+            }
 
             String rights = fedora.getXMLDatastreamContents(pid, model.getRights(), null);
             rep_builder.rights(XmlUtils.toObject(stream(rights)));
@@ -109,8 +116,10 @@ public class EntityInterface {
             File.Builder file_builder = new File.Builder();
             file_builder.identifier(new Identifier(TypeUtils.pickFileIdentifier(identifiers)));
 
-            String fileTechnical = fedora.getXMLDatastreamContents(pid, model.getFileTechnical(), null);
-            file_builder.technical(XmlUtils.toObject(stream(fileTechnical)));
+            for (String fileTechnicalDatastream : model.getFileTechnical()) {
+                String fileTechnical = fedora.getXMLDatastreamContents(pid, fileTechnicalDatastream, null);
+                file_builder.technical(fileTechnicalDatastream, XmlUtils.toObject(stream(fileTechnical)));
+            }
 
             String contentDatastreamName = model.getFileContent();
             for (DatastreamProfile datastreamProfile : profile.getDatastreams()) {
@@ -184,13 +193,13 @@ public class EntityInterface {
             }
 
 
-
             List<String> scapeIdentifiers = TypeUtils.formatIdentifiers(entity);
 
             //We have a new object here, with the identifiers
             String pid = fedora.newEmptyObject(scapeIdentifiers, getCollections(), logmessage);
             //add the content models
-            fedora.addRelation(pid,"info:fedora/"+ pid, HASMODEL, "info:fedora/"+scape_content_model, false, logmessage);
+            fedora.addRelation(
+                    pid, "info:fedora/" + pid, HASMODEL, "info:fedora/" + scape_content_model, false, logmessage);
             DSCompositeModel model = new DSCompositeModel(scape_content_model, fedora);
 
             //TODO version number
@@ -211,16 +220,24 @@ public class EntityInterface {
                         pid, model.getRights(), XmlUtils.toString(representation.getRights()), null, logmessage);
                 fedora.modifyDatastreamByValue(
                         pid, model.getSource(), XmlUtils.toString(representation.getSource()), null, logmessage);
-                fedora.modifyDatastreamByValue(
-                        pid,
-                        model.getRepresentationTechnical(),
-                        XmlUtils.toString(representation.getTechnical()),
-                        null,
-                        logmessage);
+                for (String representationTechnicalDatastream : model.getRepresentationTechnical()) {
+                    Object contents = findContents(representationTechnicalDatastream, representation.getTechnical());
+                    if (contents != null) {
+                        fedora.modifyDatastreamByValue(
+                                pid, representationTechnicalDatastream, XmlUtils.toString(contents), null, logmessage);
+                    }
+
+                }
                 fedora.modifyObjectLabel(pid, representation.getTitle(), logmessage);
                 for (File file : representation.getFiles()) {
-                    fedora.modifyDatastreamByValue(
-                            pid, model.getFileTechnical(), XmlUtils.toString(file.getTechnical()), null, logmessage);
+                    for (String fileTechnicalMetadata : model.getFileTechnical()) {
+                        Object contents = findContents(fileTechnicalMetadata, file.getTechnical());
+                        if (contents != null) {
+                            fedora.modifyDatastreamByValue(
+                                    pid, fileTechnicalMetadata, XmlUtils.toString(contents), null, logmessage);
+                        }
+
+                    }
                     fedora.addExternalDatastream(
                             pid,
                             model.getFileContent(),
@@ -243,6 +260,15 @@ public class EntityInterface {
             throw new CommunicationException(e);
         }
 
+    }
+
+    private Object findContents(String representationTechnicalDatastream, TechnicalMetadataList technical) {
+        for (TechnicalMetadata technicalMetadata : technical.getContent()) {
+            if (technicalMetadata.getId().equals(representationTechnicalDatastream)) {
+                return technicalMetadata.getContents();
+            }
+        }
+        return null;
     }
 
 
@@ -324,16 +350,24 @@ public class EntityInterface {
                         pid, model.getRights(), XmlUtils.toString(representation.getRights()), null, logmessage);
                 fedora.modifyDatastreamByValue(
                         pid, model.getSource(), XmlUtils.toString(representation.getSource()), null, logmessage);
-                fedora.modifyDatastreamByValue(
-                        pid,
-                        model.getRepresentationTechnical(),
-                        XmlUtils.toString(representation.getTechnical()),
-                        null,
-                        logmessage);
+                for (String representationTechnicalDatastream : model.getRepresentationTechnical()) {
+                    Object contents = findContents(representationTechnicalDatastream, representation.getTechnical());
+                    if (contents != null) {
+                        fedora.modifyDatastreamByValue(
+                                pid, representationTechnicalDatastream, XmlUtils.toString(contents), null, logmessage);
+                    }
+
+                }
                 fedora.modifyObjectLabel(pid, representation.getTitle(), logmessage);
                 for (File file : representation.getFiles()) {
-                    fedora.modifyDatastreamByValue(
-                            pid, model.getFileTechnical(), XmlUtils.toString(file.getTechnical()), null, logmessage);
+                    for (String fileTechnicalMetadata : model.getFileTechnical()) {
+                        Object contents = findContents(fileTechnicalMetadata, file.getTechnical());
+                        if (contents != null) {
+                            fedora.modifyDatastreamByValue(
+                                    pid, fileTechnicalMetadata, XmlUtils.toString(contents), null, logmessage);
+                        }
+
+                    }
                     fedora.addExternalDatastream(
                             pid,
                             model.getFileContent(),
@@ -362,7 +396,7 @@ public class EntityInterface {
                                                                                                BackendInvalidCredsException {
         DSCompositeModel model = new DSCompositeModel();
         for (String contentModel : profile.getContentModels()) {
-            model.merge(new DSCompositeModel(contentModel.replace("info:fedora/",""), fedora));
+            model.merge(new DSCompositeModel(contentModel.replace("info:fedora/", ""), fedora));
         }
         return model;
     }
@@ -372,7 +406,6 @@ public class EntityInterface {
     }
 
 
-
     public List<String> getCollections() {
         return collections;
     }
@@ -380,4 +413,49 @@ public class EntityInterface {
     public EnhancedFedora getEnhancedFedora() {
         return enhancedFedora;
     }
+
+    public IntellectualEntity readFromEntityID(String entityID, boolean references) throws
+                                                                                    NotFoundException,
+                                                                                    CommunicationException,
+                                                                                    UnauthorizedException,
+                                                                                    ParsingException {
+        List<String> pids = null;
+        try {
+            pids = getEnhancedFedora().findObjectFromDCIdentifier(
+                    TypeUtils.formatEntityIdentifier(
+                            new Identifier(
+                                    entityID)));
+        } catch (BackendInvalidCredsException e) {
+            throw new UnauthorizedException(e);
+        } catch (BackendMethodFailedException e) {
+            throw new CommunicationException(e);
+        }
+        if (pids.size() == 0) {
+            throw new NotFoundException();
+        }
+        return read(pids.get(0), references);
+    }
+
+    public void updateFromEntityID(String entityID, IntellectualEntity entity) throws
+                                                                               NotFoundException,
+                                                                               CommunicationException,
+                                                                               UnauthorizedException,
+                                                                               ParsingException {
+        List<String> pids = null;
+        try {
+            pids = getEnhancedFedora().findObjectFromDCIdentifier(
+                    TypeUtils.formatEntityIdentifier(
+                            new Identifier(
+                                    entityID)));
+        } catch (BackendInvalidCredsException e) {
+            throw new UnauthorizedException(e);
+        } catch (BackendMethodFailedException e) {
+            throw new CommunicationException(e);
+        }
+        if (pids.size() == 0) {
+            throw new NotFoundException();
+        }
+        update(pids.get(0), entity);
+    }
+
 }

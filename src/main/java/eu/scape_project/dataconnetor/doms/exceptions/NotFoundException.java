@@ -1,6 +1,6 @@
 package eu.scape_project.dataconnetor.doms.exceptions;
 
-public class NotFoundException extends Exception {
+public class NotFoundException extends MyException {
     public NotFoundException() {
     }
 

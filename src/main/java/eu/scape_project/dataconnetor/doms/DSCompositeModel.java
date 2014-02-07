@@ -10,15 +10,18 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import java.util.HashSet;
+import java.util.Set;
+
 public class DSCompositeModel {
     public static final String DS_COMPOSITE_MODEL = "DS-COMPOSITE-MODEL";
     private String descriptive;
     private String rights;
     private String source;
     private String provenance;
-    private String fileTechnical;
+    private Set<String> fileTechnical = new HashSet<>();
     private String fileContent;
-    private String representationTechnical;
+    private Set<String> representationTechnical = new HashSet<>();
     private String lifeCycle;
 
     public DSCompositeModel(String contentModelPid, EnhancedFedora fedora) throws
@@ -53,10 +56,10 @@ public class DSCompositeModel {
                     source = name;
                     break;
                 case "representation_technical":
-                    representationTechnical = name;
+                    representationTechnical.add(name);
                     break;
                 case "file_technical":
-                    fileTechnical = name;
+                    fileTechnical.add(name);
                     break;
                 case "file_content":
                     fileContent = name;
@@ -87,7 +90,7 @@ public class DSCompositeModel {
         return provenance;
     }
 
-    public String getFileTechnical() {
+    public Set<String> getFileTechnical() {
         return fileTechnical;
     }
 
@@ -120,14 +123,14 @@ public class DSCompositeModel {
             source = temp;
         }
 
-        temp = dsCompositeModel.getRepresentationTechnical();
+        Set<String> tempSet = dsCompositeModel.getRepresentationTechnical();
         if (temp != null) {
-            representationTechnical = temp;
+            representationTechnical.addAll(tempSet);
         }
 
-        temp = dsCompositeModel.getFileTechnical();
+        tempSet = dsCompositeModel.getFileTechnical();
         if (temp != null) {
-            fileTechnical = temp;
+            fileTechnical.addAll(tempSet);
         }
 
         temp = dsCompositeModel.getFileContent();
@@ -137,7 +140,7 @@ public class DSCompositeModel {
 
     }
 
-    public String getRepresentationTechnical() {
+    public Set<String> getRepresentationTechnical() {
         return representationTechnical;
     }
 

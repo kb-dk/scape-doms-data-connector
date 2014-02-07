@@ -255,7 +255,8 @@ public class MockFedora {
 
     public static IntellectualEntity buildNewEntity(String entityIdentifier, String representationIdentifier,
                                                     String fileIdentifier, String title, String repTitle, URI fileUri,
-                                                    String mimetype, String filename) throws ParsingException {
+                                                    String mimetype, String filename, String scape_file_technical,
+                                                    String scape_representation_technical) throws ParsingException {
         IntellectualEntity.Builder builder = new IntellectualEntity.Builder();
         builder.identifier(new Identifier(entityIdentifier));
         builder.descriptive(XmlUtils.toObject(getDescriptive(title)));
@@ -266,7 +267,7 @@ public class MockFedora {
         repBuilder.title(repTitle);
         repBuilder.identifier(new Identifier(representationIdentifier));
         repBuilder.rights(XmlUtils.toObject(getSimpleRights()));
-        repBuilder.technical(XmlUtils.toObject(getEmptyTextMD()));
+        repBuilder.technical(scape_representation_technical, XmlUtils.toObject(getEmptyTextMD()));
         repBuilder.provenance(XmlUtils.toObject(getSimpleProvenance()));
         repBuilder.source(XmlUtils.toObject(getSimpleSource()));
 
@@ -275,7 +276,7 @@ public class MockFedora {
         fileBuilder.mimetype(mimetype);
         fileBuilder.filename(filename);
         fileBuilder.identifier(new Identifier(fileIdentifier));
-        fileBuilder.technical(XmlUtils.toObject(getEmptyTextMD()));
+        fileBuilder.technical(scape_file_technical, XmlUtils.toObject(getEmptyTextMD()));
         repBuilder.files(Arrays.asList(fileBuilder.build()));
         builder.representations(Arrays.asList(repBuilder.build()));
         return builder.build();
