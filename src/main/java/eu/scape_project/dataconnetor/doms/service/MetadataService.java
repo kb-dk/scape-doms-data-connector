@@ -1,6 +1,6 @@
 package eu.scape_project.dataconnetor.doms.service;
 
-import eu.scape_project.dataconnetor.doms.EntityInterface;
+import eu.scape_project.dataconnetor.doms.EntityManipulator;
 import eu.scape_project.dataconnetor.doms.EntityInterfaceFactory;
 import eu.scape_project.dataconnetor.doms.XmlUtils;
 import eu.scape_project.dataconnetor.doms.exceptions.CommunicationException;
@@ -208,7 +208,7 @@ public class MetadataService {
                                                      ParsingException,
                                                      CommunicationException,
                                                      NotFoundException {
-        EntityInterface instance = EntityInterfaceFactory.getInstance();
+        EntityManipulator instance = EntityInterfaceFactory.getInstance();
         IntellectualEntity entity = instance.readFromEntityID(entityID, false);
         IntellectualEntity newEntity = new IntellectualEntity.Builder(entity).descriptive(XmlUtils.toObject(contents))
                                                                              .build();

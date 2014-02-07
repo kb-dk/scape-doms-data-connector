@@ -12,14 +12,14 @@ import java.util.ArrayList;
 
 public class EntityInterfaceFactory {
 
-    public static EntityInterface getInstance() throws
+    public static EntityManipulator getInstance() throws
 
                                                 ConfigurationException {
         try {
             Credentials creds = new Credentials(
                     ConfigCollection.getProperties().getProperty("doms.username"),
                     ConfigCollection.getProperties().getProperty("doms.password"));
-            return new EntityInterface(
+            return new EntityManipulator(
                     new ArrayList<String>(), new EnhancedFedoraImpl(
                     creds,
                     ConfigCollection.getProperties().getProperty("doms.url"),

@@ -1,6 +1,6 @@
 package eu.scape_project.dataconnetor.doms.service;
 
-import eu.scape_project.dataconnetor.doms.EntityInterface;
+import eu.scape_project.dataconnetor.doms.EntityManipulator;
 import eu.scape_project.dataconnetor.doms.EntityInterfaceFactory;
 import eu.scape_project.dataconnetor.doms.exceptions.CommunicationException;
 import eu.scape_project.dataconnetor.doms.exceptions.ConfigurationException;
@@ -57,7 +57,7 @@ public class FileService  {
                               ParsingException,
                               UnauthorizedException,
                               CommunicationException {
-        EntityInterface instance = EntityInterfaceFactory.getInstance();
+        EntityManipulator instance = EntityInterfaceFactory.getInstance();
         IntellectualEntity entity = instance.readFromEntityID(entityID, false);
         for (Representation representation : entity.getRepresentations()) {
             if (representation.getIdentifier().getValue().equals(representationID)) {

@@ -21,10 +21,10 @@ import java.util.regex.Pattern;
 public class TypeUtils {
     public static final String NAMESPACE_DC = "http://purl.org/dc/elements/1.1/";
     public static final String NAMESPACE_OAIDC = "http://www.openarchives.org/OAI/2.0/oai_dc/";
-    static final String ENTITY = "scape_entity:";
-    static final String REPRESENTATION = "scape_representation:";
-    static final String FILE = "scape_file:";
-    static final String BITSTREAM = "scape_bitstream:";
+    static final String ENTITY = "scape-entity:";
+    static final String REPRESENTATION = "scape-representation:";
+    static final String FILE = "scape-file:";
+    static final String BITSTREAM = "scape-bitstream:";
 
     static String formatBitstreamIdentifier(Identifier identifier) {
         return BITSTREAM + identifier.getValue();

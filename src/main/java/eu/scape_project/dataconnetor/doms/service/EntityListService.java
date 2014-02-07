@@ -2,7 +2,7 @@ package eu.scape_project.dataconnetor.doms.service;
 
 import com.sun.jersey.multipart.BodyPart;
 import com.sun.jersey.multipart.MultiPart;
-import eu.scape_project.dataconnetor.doms.EntityInterface;
+import eu.scape_project.dataconnetor.doms.EntityManipulator;
 import eu.scape_project.dataconnetor.doms.EntityInterfaceFactory;
 import eu.scape_project.dataconnetor.doms.XmlUtils;
 import eu.scape_project.dataconnetor.doms.exceptions.CommunicationException;
@@ -55,7 +55,7 @@ public class EntityListService {
                                                         NotFoundException {
         BufferedReader reader = new BufferedReader(new InputStreamReader(entityUriList));
         String line;
-        EntityInterface entities = EntityInterfaceFactory.getInstance();
+        EntityManipulator entities = EntityInterfaceFactory.getInstance();
 
         MultiPart multiPartEntity = new MultiPart();
         try {
