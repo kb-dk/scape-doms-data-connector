@@ -22,9 +22,6 @@ import java.io.InputStream;
 @Path("/metadata")
 public class MetadataService {
 
-    //TODO add support for versions
-
-
     private Response retrieveGeneric(String entityID, String representationID, String fileID, String bitstreamID,
                                      String versionID, String metadataID) throws
                                                                           ParsingException,
@@ -33,7 +30,7 @@ public class MetadataService {
                                                                           NotFoundException,
                                                                           CommunicationException {
 
-        IntellectualEntity entity = EntityInterfaceFactory.getInstance().readFromEntityID(entityID, false);
+        IntellectualEntity entity = EntityInterfaceFactory.getInstance().readFromEntityID(entityID, versionID, false);
 
         if (representationID == null) {
             return Response.ok().entity(XmlUtils.toBytes(entity.getDescriptive())).build();
@@ -209,7 +206,7 @@ public class MetadataService {
                                                      CommunicationException,
                                                      NotFoundException {
         EntityManipulator instance = EntityInterfaceFactory.getInstance();
-        IntellectualEntity entity = instance.readFromEntityID(entityID, false);
+        IntellectualEntity entity = instance.readFromEntityID(entityID, null, false);
         IntellectualEntity newEntity = new IntellectualEntity.Builder(entity).descriptive(XmlUtils.toObject(contents))
                                                                              .build();
         instance.updateFromEntityID(entityID, newEntity);

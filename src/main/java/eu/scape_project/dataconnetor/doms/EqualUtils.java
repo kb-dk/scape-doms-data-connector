@@ -76,4 +76,16 @@ public class EqualUtils {
     public static boolean bitstreamTechicalEquals(Object a, Object b) throws ParsingException, CommunicationException {
         return xmlEquals(a, b);
     }
+
+    public static String longForm(String pid) {
+        String s = "info:fedora/";
+        if (!pid.startsWith(s)) {
+            return s + pid;
+        }
+        return pid;
+    }
+
+    public static String shortForm(String pid) {
+        return pid.replaceFirst("^info:fedora/", "");
+    }
 }

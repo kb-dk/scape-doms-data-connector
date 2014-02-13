@@ -4,6 +4,7 @@ import dk.statsbiblioteket.doms.central.connectors.BackendInvalidCredsException;
 import dk.statsbiblioteket.doms.central.connectors.BackendInvalidResourceException;
 import dk.statsbiblioteket.doms.central.connectors.BackendMethodFailedException;
 import dk.statsbiblioteket.doms.central.connectors.EnhancedFedora;
+import eu.scape_project.dataconnetor.doms.exceptions.CommunicationException;
 import eu.scape_project.dataconnetor.doms.exceptions.ParsingException;
 import eu.scape_project.model.File;
 import eu.scape_project.model.Identifier;
@@ -30,7 +31,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
-public class EntityManipulatorTest {
+public class EntityManipulatorTestMockedCentral {
     @Test
     public void testRead() throws Exception {
         String pid = "uuid:testPid";
@@ -81,7 +82,7 @@ public class EntityManipulatorTest {
                 scape_content_model);
         EntityManipulator entityManipulator = new EntityManipulator(collections, fedora, scape_content_model);
 
-        IntellectualEntity entity = entityManipulator.read(pid, true);
+        IntellectualEntity entity = entityManipulator.read(pid, null, true);
 
         XMLUnit.setIgnoreWhitespace(true);
         XMLAssert.assertXMLEqual(
@@ -309,7 +310,7 @@ public class EntityManipulatorTest {
 
         EntityManipulator entityManipulator = new EntityManipulator(collections, fedora, scape_content_model);
 
-        IntellectualEntity entity = entityManipulator.read(pid, true);
+        IntellectualEntity entity = entityManipulator.read(pid, null, true);
 
 
         fedora = mock(EnhancedFedora.class);
@@ -419,7 +420,8 @@ public class EntityManipulatorTest {
                                                                                                                 BackendInvalidCredsException,
                                                                                                                 BackendMethodFailedException,
                                                                                                                 BackendInvalidResourceException,
-                                                                                                                ParsingException {
+                                                                                                                ParsingException,
+                                                                                                                CommunicationException {
         MockFedora.setupContentModels(
                 fedora,
                 scape_content_model,

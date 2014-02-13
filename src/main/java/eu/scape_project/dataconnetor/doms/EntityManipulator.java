@@ -21,23 +21,28 @@ import eu.scape_project.model.LifecycleState;
 import eu.scape_project.model.Representation;
 import eu.scape_project.model.TechnicalMetadata;
 import eu.scape_project.model.TechnicalMetadataList;
+import versions.VersionType;
+import versions.VersionsType;
 
 import javax.xml.bind.JAXBException;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 public class EntityManipulator {
 
 
     public static final String HASMODEL = "info:fedora/fedora-system:def/model#hasModel";
+    public static final String SCAPE_VERSIONS = "SCAPE_VERSIONS";
     private List<String> collections;
     private EnhancedFedora enhancedFedora;
     private String scape_content_model;
 
 
-    public EntityManipulator(List<String> collections, EnhancedFedora enhancedFedora, String scape_content_model) {
+    public EntityManipulator(List<String> collections, EnhancedFedora enhancedFedora, String scape_content_model) throws
+                                                                                                                  JAXBException {
         this.collections = collections;
         this.enhancedFedora = enhancedFedora;
         this.scape_content_model = scape_content_model;
@@ -47,6 +52,7 @@ public class EntityManipulator {
      * This method reads an object as an intellectual entity and returns this
      *
      * @param pid        the pid of the object
+     * @param versionID
      * @param references
      *
      * @return the parsed entity
@@ -58,46 +64,62 @@ public class EntityManipulator {
      * @throws PIDGeneratorException
      * @throws MalformedURLException
      */
-    IntellectualEntity read(String pid, boolean references) throws
-                                                            CommunicationException,
-                                                            UnauthorizedException,
-                                                            NotFoundException,
-                                                            ParsingException {
+    IntellectualEntity read(String pid, String versionID, boolean references) throws
+                                                                              CommunicationException,
+                                                                              UnauthorizedException,
+                                                                              NotFoundException,
+                                                                              ParsingException {
         EnhancedFedora fedora = getEnhancedFedora();
 
         List<String> identifiers = null;
         try {
+
+            Long timestamp = null;
+            if (versionID != null) {
+                try {
+                    String scapeVersions = fedora.getXMLDatastreamContents(pid, SCAPE_VERSIONS);
+                    timestamp = VersionUtils.findVersionInScapeVersions(scapeVersions, versionID);
+                } catch (BackendInvalidResourceException e) {
+
+                }
+            }
+
             identifiers = TypeUtils.getDCIdentifiers(fedora, pid, "scape");
 
-            ObjectProfile profile = fedora.getObjectProfile(pid, null);
-            DSCompositeModel model = getDsCompositeModel(fedora, profile.getContentModels());
+            ObjectProfile profile = fedora.getObjectProfile(pid, timestamp);
+            DSCompositeModel model = getDsCompositeModel(fedora, profile.getContentModels(),timestamp);
 
             //Build the entity
             IntellectualEntity.Builder builder = new IntellectualEntity.Builder();
             builder.identifier(new Identifier(TypeUtils.pickEntityIdentifier(identifiers)));
-            builder.descriptive(getIfExists(pid,fedora,profile,model.getDescriptive()));
-            builder.lifecycleState((LifecycleState) getIfExists(pid,fedora,profile,model.getLifeCycle()));
+            builder.descriptive(getIfExists(pid, fedora, profile, model.getDescriptive(),timestamp));
+            builder.lifecycleState((LifecycleState) getIfExists(pid, fedora, profile, model.getLifeCycle(),timestamp));
+            builder.versionNumber(intOrNull(versionID));
 
-            //TODO version number
+            /*
+            Versions will be handled as a separate datastream. It will have hold the
+            version "number" along with the timestamp, so that we can request the fedora object with the correct
+            timestamp. This does require that EVERYTHING on the fedora object is versioned
+             */
 
 
             //Build the representation
             Representation.Builder rep_builder = new Representation.Builder();
             rep_builder.identifier(new Identifier(TypeUtils.pickRepresentationIdentifier(identifiers)));
             for (String repTechDatastream : model.getRepresentationTechnical()) {
-                rep_builder.technical(repTechDatastream, getIfExists(pid, fedora, profile, repTechDatastream));
+                rep_builder.technical(repTechDatastream, getIfExists(pid, fedora, profile, repTechDatastream,timestamp));
             }
 
-            rep_builder.rights(getIfExists(pid, fedora, profile, model.getRights()));
-            rep_builder.source(getIfExists(pid, fedora, profile, model.getSource()));
-            rep_builder.provenance(getIfExists(pid, fedora, profile, model.getProvenance()));
+            rep_builder.rights(getIfExists(pid, fedora, profile, model.getRights(),timestamp));
+            rep_builder.source(getIfExists(pid, fedora, profile, model.getSource(),timestamp));
+            rep_builder.provenance(getIfExists(pid, fedora, profile, model.getProvenance(),timestamp));
             rep_builder.title(profile.getLabel());
 
             //Build the File
             File.Builder file_builder = new File.Builder();
             file_builder.identifier(new Identifier(TypeUtils.pickFileIdentifier(identifiers)));
             for (String fileTechDatastream : model.getFileTechnical()) {
-                file_builder.technical(fileTechDatastream, getIfExists(pid, fedora, profile, fileTechDatastream));
+                file_builder.technical(fileTechDatastream, getIfExists(pid, fedora, profile, fileTechDatastream,timestamp));
             }
 
             String contentDatastreamName = model.getFileContent();
@@ -106,6 +128,7 @@ public class EntityManipulator {
                     file_builder.filename(datastreamProfile.getLabel());
                     file_builder.mimetype(datastreamProfile.getMimeType());
                     file_builder.uri(URI.create(datastreamProfile.getUrl()));
+                    break;
                 }
             }
             //Build the bitstreams
@@ -121,7 +144,18 @@ public class EntityManipulator {
         }
     }
 
-    private Object getIfExists(String pid, EnhancedFedora fedora, ObjectProfile profile, String datastream) throws
+    private Integer intOrNull(String versionID) {
+        if (versionID != null){
+            try {
+            return Integer.parseInt(versionID);
+            } catch (NumberFormatException e){
+                return null;
+            }
+        }
+        return 1;
+    }
+
+    private Object getIfExists(String pid, EnhancedFedora fedora, ObjectProfile profile, String datastream, Long timestamp) throws
                                                                                                             BackendInvalidCredsException,
                                                                                                             BackendMethodFailedException,
                                                                                                             ParsingException {
@@ -134,7 +168,7 @@ public class EntityManipulator {
                 }
             }
             if (get) {
-                String rights = fedora.getXMLDatastreamContents(pid, datastream, null);
+                String rights = fedora.getXMLDatastreamContents(pid, datastream, timestamp);
                 return XmlUtils.toObject((rights));
             } else {
                 return null;
@@ -167,8 +201,10 @@ public class EntityManipulator {
         try {
             try {
                 getPids(entity.getIdentifier().getValue());
-                throw new AlreadyExistsException("An entity with id '"+entity.getIdentifier().getValue()+"' already exists");
-            } catch (NotFoundException e){
+                throw new AlreadyExistsException(
+                        "An entity with id '" + entity.getIdentifier()
+                                                      .getValue() + "' already exists");
+            } catch (NotFoundException e) {
                 return createOrUpdate(null, entity);
             }
         } catch (NotFoundException e) {
@@ -187,16 +223,16 @@ public class EntityManipulator {
 
 
     /**
-     * Update an entity already persisted in doms
+     * Create a new entity in doms (pid == null) or update an entity already persisted in doms (pid != null)
      *
      * @param pid
      * @param entity
      */
     private String createOrUpdate(String pid, IntellectualEntity entity) throws
-                                                                 CommunicationException,
-                                                                 NotFoundException,
-                                                                 ParsingException,
-                                                                 UnauthorizedException {
+                                                                         CommunicationException,
+                                                                         NotFoundException,
+                                                                         ParsingException,
+                                                                         UnauthorizedException {
         EnhancedFedora fedora = getEnhancedFedora();
 
         try {
@@ -210,19 +246,19 @@ public class EntityManipulator {
                 //We have a new object here, with the identifiers
                 pid = fedora.newEmptyObject(scapeIdentifiers, getCollections(), logmessage);
                 //add the content models
-                String contentModel = "info:fedora/" + scape_content_model;
+                String contentModel = EqualUtils.longForm(scape_content_model);
                 fedora.addRelation(
-                        pid, "info:fedora/" + pid, HASMODEL, contentModel, false, logmessage);
+                        pid, EqualUtils.longForm(pid), HASMODEL, contentModel, false, logmessage);
 
                 profile = null;
-                model = getDsCompositeModel(fedora, Arrays.asList(contentModel));
+                model = getDsCompositeModel(fedora, Arrays.asList(contentModel), null);
+
             } else {
                 profile = fedora.getObjectProfile(pid, null);
                 setIdentifiers(pid, scapeIdentifiers, fedora);
-                model = getDsCompositeModel(fedora, profile.getContentModels());
+                model = getDsCompositeModel(fedora, profile.getContentModels(), null);
+
             }
-
-
 
             //TODO version number
 
@@ -264,6 +300,8 @@ public class EntityManipulator {
                 }
 
             }
+
+            updateVersion(pid,fedora,logmessage);
             return pid;
         } catch (BackendInvalidCredsException e) {
             throw new UnauthorizedException(e);
@@ -273,6 +311,36 @@ public class EntityManipulator {
         }
 
     }
+
+    private void updateVersion(String pid, EnhancedFedora fedora, String logMessage) throws
+                                                                                     BackendInvalidCredsException,
+                                                                                     BackendMethodFailedException,
+                                                                                     CommunicationException,
+                                                                                     BackendInvalidResourceException {
+
+        VersionsType versions = VersionUtils.getVersions(pid, fedora);
+        VersionType version = new VersionType();
+        Integer id = getHighestID(versions);
+        version.setId(id+1);
+        version.setTimestamp(new Date().getTime());
+        versions.getVersion().add(version);
+        VersionUtils.setVersions(pid, fedora, logMessage, versions);
+    }
+
+    private Integer getHighestID(VersionsType versions) {
+        Integer result = Integer.MIN_VALUE;
+        for (VersionType versionType : versions.getVersion()) {
+            if (versionType.getId().compareTo(result) >= 0){
+                result = versionType.getId();
+            }
+        }
+        if (result.equals(Integer.MIN_VALUE)){
+            return 0;
+        } else {
+            return result;
+        }
+    }
+
 
     private void changeIfNeeded(String pid, EnhancedFedora fedora, String logmessage, ObjectProfile profile,
                                 String datastream, Object content) throws
@@ -310,16 +378,17 @@ public class EntityManipulator {
         }
     }
 
-    private DSCompositeModel getDsCompositeModel(EnhancedFedora fedora, List<String> contentModels) throws
-                                                                                               BackendMethodFailedException,
-                                                                                               BackendInvalidResourceException,
-                                                                                               BackendInvalidCredsException {
+    private DSCompositeModel getDsCompositeModel(EnhancedFedora fedora, List<String> contentModels, Long timestamp) throws
+                                                                                                    BackendMethodFailedException,
+                                                                                                    BackendInvalidResourceException,
+                                                                                                    BackendInvalidCredsException {
         DSCompositeModel model = new DSCompositeModel();
         for (String contentModel : contentModels) {
-            model.merge(new DSCompositeModel(contentModel.replace("info:fedora/", ""), fedora));
+            model.merge(new DSCompositeModel(EqualUtils.shortForm(contentModel), fedora,timestamp));
         }
         return model;
     }
+
 
     private void setIdentifiers(String pid, List<String> scapeIdentifiers, EnhancedFedora fedora) {
         //TODO
@@ -334,14 +403,15 @@ public class EntityManipulator {
         return enhancedFedora;
     }
 
-    public IntellectualEntity readFromEntityID(String entityID, boolean references) throws
-                                                                                    NotFoundException,
-                                                                                    CommunicationException,
-                                                                                    UnauthorizedException,
-                                                                                    ParsingException {
+    public IntellectualEntity readFromEntityID(String entityID, String versionID, boolean references) throws
+                                                                                                      NotFoundException,
+                                                                                                      CommunicationException,
+                                                                                                      UnauthorizedException,
+                                                                                                      ParsingException {
         List<String> pids = null;
+        //If you renamed the entity, you are fucked
         pids = getPids(entityID);
-        return read(pids.get(0), references);
+        return read(pids.get(0), versionID, references);
     }
 
     public void updateFromEntityID(String entityID, IntellectualEntity entity) throws

@@ -24,12 +24,12 @@ public class DSCompositeModel {
     private Set<String> representationTechnical = new HashSet<>();
     private String lifeCycle;
 
-    public DSCompositeModel(String contentModelPid, EnhancedFedora fedora) throws
+    public DSCompositeModel(String contentModelPid, EnhancedFedora fedora, Long timestamp) throws
                                                                            BackendMethodFailedException,
                                                                            BackendInvalidResourceException,
                                                                            BackendInvalidCredsException {
         String dsCompXml = fedora.getXMLDatastreamContents(
-                contentModelPid, DS_COMPOSITE_MODEL);
+                contentModelPid, DS_COMPOSITE_MODEL,timestamp);
 
         Document dsDoc = DOM.stringToDOM(dsCompXml, true);
         XPathSelector xpath = DOM.createXPathSelector("d", "info:fedora/fedora-system:def/dsCompositeModel#");

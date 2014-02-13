@@ -26,8 +26,6 @@ import java.io.InputStream;
 @Path("/entity")
 public class EntityService {
 
-    //TODO add support for versions
-
 
     /**
      * 5.4.1 Retrieve an Intellectual Entity
@@ -71,7 +69,7 @@ public class EntityService {
 
         boolean references = toBoolean(useReferences);
 
-        entity = EntityInterfaceFactory.getInstance().readFromEntityID(entityID, references);
+        entity = EntityInterfaceFactory.getInstance().readFromEntityID(entityID, versionID,references);
 
         InputStream bytes = XmlUtils.toBytes(entity, references);
         return Response.ok(bytes, MediaType.TEXT_XML_TYPE).build();

@@ -22,7 +22,8 @@ import java.util.List;
 @Path("/representation")
 public class RepresentationService  {
 
-    //TODO add support for versions
+    //TODO where are the version ids?
+
 
 
     /**
@@ -55,7 +56,7 @@ public class RepresentationService  {
                                      CommunicationException,
                                      NotFoundException {
         EntityManipulator instance = EntityInterfaceFactory.getInstance();
-        IntellectualEntity entity = instance.readFromEntityID(entityID, false);
+        IntellectualEntity entity = instance.readFromEntityID(entityID, null, false);
 
         for (Representation representation : entity.getRepresentations()) {
             if (representation.getIdentifier().getValue().equals(representationID)) {
@@ -96,7 +97,7 @@ public class RepresentationService  {
                                                            CommunicationException,
                                                            NotFoundException {
         EntityManipulator instance = EntityInterfaceFactory.getInstance();
-        IntellectualEntity entity = instance.readFromEntityID(entityID, false);
+        IntellectualEntity entity = instance.readFromEntityID(entityID, null, false);
         List<Representation> representations = entity.getRepresentations();
         for (int i = 0; i < representations.size(); i++) {
             Representation representation = representations.get(i);

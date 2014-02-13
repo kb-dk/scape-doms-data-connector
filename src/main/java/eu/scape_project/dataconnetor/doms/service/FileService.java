@@ -41,7 +41,6 @@ public class FileService  {
      * Content-Type
      * depends on File's metadata, but defaults to application/octet-stream.
      */
-    //TODO add support for versions
     @Path("/{entity-id}/{representation-id}/{file-id}/{version-id}")
     public Response retrieve(
             @PathParam("entity-id")
@@ -58,7 +57,7 @@ public class FileService  {
                               UnauthorizedException,
                               CommunicationException {
         EntityManipulator instance = EntityInterfaceFactory.getInstance();
-        IntellectualEntity entity = instance.readFromEntityID(entityID, false);
+        IntellectualEntity entity = instance.readFromEntityID(entityID, versionID, false);
         for (Representation representation : entity.getRepresentations()) {
             if (representation.getIdentifier().getValue().equals(representationID)) {
                 for (File file : representation.getFiles()) {

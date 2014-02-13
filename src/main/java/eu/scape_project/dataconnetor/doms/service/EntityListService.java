@@ -61,7 +61,7 @@ public class EntityListService {
         try {
             while ((line = reader.readLine()) != null) {
                 line = line.trim();
-                IntellectualEntity entity = entities.readFromEntityID(line, true);
+                IntellectualEntity entity = entities.readFromEntityID(line, null, true);
                 multiPartEntity.bodyPart(new BodyPart(XmlUtils.toString(entity),MediaType.APPLICATION_XML_TYPE));
             }
         } catch (IOException e) {

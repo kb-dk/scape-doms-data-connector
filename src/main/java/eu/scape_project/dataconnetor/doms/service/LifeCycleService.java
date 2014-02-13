@@ -45,7 +45,7 @@ public class LifeCycleService  {
                              NotFoundException,
                              ConfigurationException {
         EntityManipulator instance = EntityInterfaceFactory.getInstance();
-        IntellectualEntity entity = instance.readFromEntityID(entityID, false);
+        IntellectualEntity entity = instance.readFromEntityID(entityID, null, false);
 
         return Response.ok().entity(XmlUtils.toString(entity.getLifecycleState())).build();
     }

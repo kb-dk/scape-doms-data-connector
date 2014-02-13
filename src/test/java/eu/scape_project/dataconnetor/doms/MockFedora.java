@@ -6,16 +6,21 @@ import dk.statsbiblioteket.doms.central.connectors.BackendMethodFailedException;
 import dk.statsbiblioteket.doms.central.connectors.EnhancedFedora;
 import dk.statsbiblioteket.doms.central.connectors.fedora.structures.DatastreamProfile;
 import dk.statsbiblioteket.doms.central.connectors.fedora.structures.ObjectProfile;
+import eu.scape_project.dataconnetor.doms.exceptions.CommunicationException;
 import eu.scape_project.dataconnetor.doms.exceptions.ParsingException;
 import eu.scape_project.model.File;
 import eu.scape_project.model.Identifier;
 import eu.scape_project.model.IntellectualEntity;
 import eu.scape_project.model.LifecycleState;
 import eu.scape_project.model.Representation;
+import versions.ObjectFactory;
+import versions.VersionType;
+import versions.VersionsType;
 
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 import static org.mockito.Matchers.anyLong;
@@ -107,13 +112,22 @@ public class MockFedora {
                                                              BackendInvalidCredsException,
                                                              BackendMethodFailedException,
                                                              BackendInvalidResourceException,
-                                                             ParsingException {
+                                                             ParsingException, CommunicationException {
         when(fedora.getXMLDatastreamContents(eq(pid), eq(scape_descriptive), anyLong())).thenReturn(
                 getDescriptive(title));
         when(
                 fedora.getXMLDatastreamContents(
                         eq(pid), eq(scape_lifecycle), anyLong())).thenReturn(
                 getSimpleLifeCycle());
+        when(fedora.getXMLDatastreamContents(eq(pid),eq(EntityManipulator.SCAPE_VERSIONS),anyLong())).thenReturn(getSimpleVersions());
+    }
+
+    private static String getSimpleVersions() throws CommunicationException {
+        VersionsType versions = new ObjectFactory().createVersionsType();
+        VersionType version = new VersionType();
+        version.setId(1);
+        version.setTimestamp(new Date().getTime()-1000);
+        return VersionUtils.toXml(versions);
     }
 
     static void setupContentModels(EnhancedFedora fedora, String scape_contentModel_pid, String scape_descriptive, String scape_lifecycle,
@@ -283,6 +297,7 @@ public class MockFedora {
 
 
     }
+
 
 
 }
