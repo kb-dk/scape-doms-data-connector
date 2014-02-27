@@ -14,6 +14,7 @@ import eu.scape_project.dataconnetor.doms.exceptions.CommunicationException;
 import eu.scape_project.dataconnetor.doms.exceptions.NotFoundException;
 import eu.scape_project.dataconnetor.doms.exceptions.ParsingException;
 import eu.scape_project.dataconnetor.doms.exceptions.UnauthorizedException;
+import eu.scape_project.dataconnetor.doms.exceptions.VersioningException;
 import eu.scape_project.model.File;
 import eu.scape_project.model.Identifier;
 import eu.scape_project.model.IntellectualEntity;
@@ -91,7 +92,12 @@ public class EntityManipulator {
 
             //Build the entity
             IntellectualEntity.Builder builder = new IntellectualEntity.Builder();
-            builder.identifier(new Identifier(TypeUtils.pickEntityIdentifier(identifiers)));
+
+            String entityIdentifier = TypeUtils.pickEntityIdentifier(identifiers);
+            if (entityIdentifier == null){
+                entityIdentifier = pid;
+            }
+            builder.identifier(new Identifier(entityIdentifier));
             builder.descriptive(getIfExists(pid, fedora, profile, model.getDescriptive(),timestamp));
             builder.lifecycleState((LifecycleState) getIfExists(pid, fedora, profile, model.getLifeCycle(),timestamp));
             builder.versionNumber(intOrNull(versionID));
@@ -105,7 +111,11 @@ public class EntityManipulator {
 
             //Build the representation
             Representation.Builder rep_builder = new Representation.Builder();
-            rep_builder.identifier(new Identifier(TypeUtils.pickRepresentationIdentifier(identifiers)));
+            String representationIdentifier = TypeUtils.pickRepresentationIdentifier(identifiers);
+            if (representationIdentifier == null){
+                representationIdentifier = pid;
+            }
+            rep_builder.identifier(new Identifier(representationIdentifier));
             for (String repTechDatastream : model.getRepresentationTechnical()) {
                 rep_builder.technical(repTechDatastream, getIfExists(pid, fedora, profile, repTechDatastream,timestamp));
             }
@@ -117,7 +127,11 @@ public class EntityManipulator {
 
             //Build the File
             File.Builder file_builder = new File.Builder();
-            file_builder.identifier(new Identifier(TypeUtils.pickFileIdentifier(identifiers)));
+            String fileIdentifier = TypeUtils.pickFileIdentifier(identifiers);
+            if (fileIdentifier == null){
+                fileIdentifier = pid;
+            }
+            file_builder.identifier(new Identifier(fileIdentifier));
             for (String fileTechDatastream : model.getFileTechnical()) {
                 file_builder.technical(fileTechDatastream, getIfExists(pid, fedora, profile, fileTechDatastream,timestamp));
             }
@@ -414,20 +428,24 @@ public class EntityManipulator {
         return read(pids.get(0), versionID, references);
     }
 
-    public void updateFromEntityID(String entityID, IntellectualEntity entity) throws
+    public long updateFromEntityID(String entityID, IntellectualEntity entity) throws
                                                                                NotFoundException,
                                                                                CommunicationException,
                                                                                UnauthorizedException,
-                                                                               ParsingException {
+                                                                               ParsingException, VersioningException {
         List<String> pids = null;
         pids = getPids(entityID);
         createOrUpdate(pids.get(0), entity);
+        return entity.getVersionNumber();
     }
 
     private List<String> getPids(String entityID) throws
                                                   UnauthorizedException,
                                                   CommunicationException,
                                                   NotFoundException {
+        if (entityID.startsWith("uuid:")){
+            return Arrays.asList(entityID);
+        }
         List<String> pids;
         try {
             pids = getEnhancedFedora().findObjectFromDCIdentifier(

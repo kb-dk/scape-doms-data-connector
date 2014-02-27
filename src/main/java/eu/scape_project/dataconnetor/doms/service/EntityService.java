@@ -8,6 +8,7 @@ import eu.scape_project.dataconnetor.doms.exceptions.ConfigurationException;
 import eu.scape_project.dataconnetor.doms.exceptions.NotFoundException;
 import eu.scape_project.dataconnetor.doms.exceptions.ParsingException;
 import eu.scape_project.dataconnetor.doms.exceptions.UnauthorizedException;
+import eu.scape_project.dataconnetor.doms.exceptions.VersioningException;
 import eu.scape_project.model.IntellectualEntity;
 
 import javax.ws.rs.Consumes;
@@ -69,7 +70,7 @@ public class EntityService {
 
         boolean references = toBoolean(useReferences);
 
-        entity = EntityInterfaceFactory.getInstance().readFromEntityID(entityID, versionID,references);
+        entity = EntityInterfaceFactory.getInstance().readFromEntityID(entityID, versionID, references);
 
         InputStream bytes = XmlUtils.toBytes(entity, references);
         return Response.ok(bytes, MediaType.TEXT_XML_TYPE).build();
@@ -142,8 +143,14 @@ public class EntityService {
                                                     UnauthorizedException,
                                                     NotFoundException,
                                                     CommunicationException {
-        EntityInterfaceFactory.getInstance().updateFromEntityID(entityID, XmlUtils.toEntity(entityXml));
-        return Response.ok().build();
+        try {
+            IntellectualEntity entity = XmlUtils.toEntity(entityXml);
+            EntityInterfaceFactory.getInstance().updateFromEntityID(entityID, entity);
+            return Response.ok().entity(entity.getVersionNumber()).build();
+        } catch (VersioningException e) {
+           return Response.status(428).build();
+        }
+
     }
 
 

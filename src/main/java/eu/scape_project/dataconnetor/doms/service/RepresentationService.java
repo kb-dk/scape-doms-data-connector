@@ -8,6 +8,7 @@ import eu.scape_project.dataconnetor.doms.exceptions.ConfigurationException;
 import eu.scape_project.dataconnetor.doms.exceptions.NotFoundException;
 import eu.scape_project.dataconnetor.doms.exceptions.ParsingException;
 import eu.scape_project.dataconnetor.doms.exceptions.UnauthorizedException;
+import eu.scape_project.dataconnetor.doms.exceptions.VersioningException;
 import eu.scape_project.model.IntellectualEntity;
 import eu.scape_project.model.Representation;
 
@@ -95,7 +96,7 @@ public class RepresentationService  {
                                                            UnauthorizedException,
                                                            ParsingException,
                                                            CommunicationException,
-                                                           NotFoundException {
+                                                           NotFoundException, VersioningException {
         EntityManipulator instance = EntityInterfaceFactory.getInstance();
         IntellectualEntity entity = instance.readFromEntityID(entityID, null, false);
         List<Representation> representations = entity.getRepresentations();

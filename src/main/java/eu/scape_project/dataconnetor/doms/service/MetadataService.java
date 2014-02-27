@@ -8,6 +8,7 @@ import eu.scape_project.dataconnetor.doms.exceptions.ConfigurationException;
 import eu.scape_project.dataconnetor.doms.exceptions.NotFoundException;
 import eu.scape_project.dataconnetor.doms.exceptions.ParsingException;
 import eu.scape_project.dataconnetor.doms.exceptions.UnauthorizedException;
+import eu.scape_project.dataconnetor.doms.exceptions.VersioningException;
 import eu.scape_project.model.BitStream;
 import eu.scape_project.model.File;
 import eu.scape_project.model.IntellectualEntity;
@@ -204,7 +205,7 @@ public class MetadataService {
                                                      UnauthorizedException,
                                                      ParsingException,
                                                      CommunicationException,
-                                                     NotFoundException {
+                                                     NotFoundException, VersioningException {
         EntityManipulator instance = EntityInterfaceFactory.getInstance();
         IntellectualEntity entity = instance.readFromEntityID(entityID, null, false);
         IntellectualEntity newEntity = new IntellectualEntity.Builder(entity).descriptive(XmlUtils.toObject(contents))
