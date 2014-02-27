@@ -86,7 +86,7 @@
 
         <dependency>
             <groupId>eu.scape-project.model</groupId>
-            <artifactId>scape-platform-datamodel</artifactId>
+            <artifactId>scape-platform-datamodel-SB</artifactId>
             <version>0.1.8-SNAPSHOT</version>
         </dependency>
         <dependency>
