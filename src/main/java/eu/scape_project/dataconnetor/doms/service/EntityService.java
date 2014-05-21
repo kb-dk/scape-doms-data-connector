@@ -146,11 +146,15 @@ public class EntityService {
         try {
             IntellectualEntity entity = XmlUtils.toEntity(entityXml);
             EntityInterfaceFactory.getInstance().updateFromEntityID(entityID, entity);
-            return Response.ok().entity(entity.getVersionNumber()).build();
+            return Response.ok().entity(string(entity.getVersionNumber())).build();
         } catch (VersioningException e) {
            return Response.status(428).build();
         }
 
+    }
+
+    private String string(int integer) {
+        return ""+integer;
     }
 
 
