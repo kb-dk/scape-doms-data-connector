@@ -25,8 +25,7 @@ import javax.ws.rs.core.Response;
 import java.io.InputStream;
 
 @Path("/entity")
-public class EntityService {
-
+public class EntityService extends AbstractService{
 
     /**
      * 5.4.1 Retrieve an Intellectual Entity
@@ -70,7 +69,7 @@ public class EntityService {
 
         boolean references = toBoolean(useReferences);
 
-        entity = EntityInterfaceFactory.getInstance().readFromEntityID(entityID, versionID, references);
+        entity = EntityInterfaceFactory.getInstance(getCredentials()).readFromEntityID(entityID, versionID, references);
 
         InputStream bytes = XmlUtils.toBytes(entity, references);
         return Response.ok(bytes, MediaType.TEXT_XML_TYPE).build();
@@ -113,7 +112,7 @@ public class EntityService {
                                                   UnauthorizedException,
                                                   AlreadyExistsException {
         IntellectualEntity intellectualEntity = XmlUtils.toEntity(ingestXml);
-        EntityInterfaceFactory.getInstance().createNew(intellectualEntity);
+        EntityInterfaceFactory.getInstance(getCredentials()).createNew(intellectualEntity);
         return Response.ok().entity(intellectualEntity.getIdentifier().getValue()).build();
     }
 
@@ -145,7 +144,7 @@ public class EntityService {
                                                     CommunicationException {
         try {
             IntellectualEntity entity = XmlUtils.toEntity(entityXml);
-            EntityInterfaceFactory.getInstance().updateFromEntityID(entityID, entity);
+            EntityInterfaceFactory.getInstance(getCredentials()).updateFromEntityID(entityID, entity);
             return Response.ok().entity(string(entity.getVersionNumber())).build();
         } catch (VersioningException e) {
            return Response.status(428).build();

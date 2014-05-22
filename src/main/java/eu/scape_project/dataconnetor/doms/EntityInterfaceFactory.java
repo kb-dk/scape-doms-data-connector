@@ -12,16 +12,13 @@ import java.util.ArrayList;
 
 public class EntityInterfaceFactory {
 
-    public static EntityManipulator getInstance() throws
+    public static EntityManipulator getInstance(Credentials credentials) throws
 
                                                 ConfigurationException {
         try {
-            Credentials creds = new Credentials(
-                    ConfigCollection.getProperties().getProperty("doms.username"),
-                    ConfigCollection.getProperties().getProperty("doms.password"));
             return new EntityManipulator(
                     new ArrayList<String>(), new EnhancedFedoraImpl(
-                    creds,
+                    credentials,
                     ConfigCollection.getProperties().getProperty("doms.url"),
                     ConfigCollection.getProperties().getProperty("pidgenerator.url"),
                     null), ConfigCollection.getProperties().getProperty("scape.contentModel"));

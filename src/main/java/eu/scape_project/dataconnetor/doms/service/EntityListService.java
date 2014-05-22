@@ -2,8 +2,8 @@ package eu.scape_project.dataconnetor.doms.service;
 
 import com.sun.jersey.multipart.BodyPart;
 import com.sun.jersey.multipart.MultiPart;
-import eu.scape_project.dataconnetor.doms.EntityManipulator;
 import eu.scape_project.dataconnetor.doms.EntityInterfaceFactory;
+import eu.scape_project.dataconnetor.doms.EntityManipulator;
 import eu.scape_project.dataconnetor.doms.XmlUtils;
 import eu.scape_project.dataconnetor.doms.exceptions.CommunicationException;
 import eu.scape_project.dataconnetor.doms.exceptions.ConfigurationException;
@@ -24,7 +24,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 
 @Path("/entity-list")
-public class EntityListService {
+public class EntityListService extends AbstractService{
 
     /*
     5.4.3 Retrieve a set of Intellectual Entities
@@ -55,7 +55,7 @@ public class EntityListService {
                                                         NotFoundException {
         BufferedReader reader = new BufferedReader(new InputStreamReader(entityUriList));
         String line;
-        EntityManipulator entities = EntityInterfaceFactory.getInstance();
+        EntityManipulator entities = EntityInterfaceFactory.getInstance(getCredentials());
 
         MultiPart multiPartEntity = new MultiPart();
         try {

@@ -3,7 +3,7 @@ package eu.scape_project.dataconnetor.doms.service;
 import javax.ws.rs.Path;
 
 @Path("/sru")
-public class SRUService {
+public class SRUService extends AbstractService {
 
     //TODO
 

@@ -3,7 +3,7 @@ package eu.scape_project.dataconnetor.doms.service;
 import javax.ws.rs.Path;
 
 @Path("/entity-async")
-public class Entity_AsyncService {
+public class Entity_AsyncService extends AbstractService {
 
     /**
      * 5.4.5 Ingest an Intellectual Entity asynchronously

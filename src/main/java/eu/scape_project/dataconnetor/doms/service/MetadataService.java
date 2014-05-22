@@ -1,7 +1,7 @@
 package eu.scape_project.dataconnetor.doms.service;
 
-import eu.scape_project.dataconnetor.doms.EntityManipulator;
 import eu.scape_project.dataconnetor.doms.EntityInterfaceFactory;
+import eu.scape_project.dataconnetor.doms.EntityManipulator;
 import eu.scape_project.dataconnetor.doms.XmlUtils;
 import eu.scape_project.dataconnetor.doms.exceptions.CommunicationException;
 import eu.scape_project.dataconnetor.doms.exceptions.ConfigurationException;
@@ -21,7 +21,7 @@ import javax.ws.rs.core.Response;
 import java.io.InputStream;
 
 @Path("/metadata")
-public class MetadataService {
+public class MetadataService extends AbstractService {
 
     private Response retrieveGeneric(String entityID, String representationID, String fileID, String bitstreamID,
                                      String versionID, String metadataID) throws
@@ -31,7 +31,7 @@ public class MetadataService {
                                                                           NotFoundException,
                                                                           CommunicationException {
 
-        IntellectualEntity entity = EntityInterfaceFactory.getInstance().readFromEntityID(entityID, versionID, false);
+        IntellectualEntity entity = EntityInterfaceFactory.getInstance(getCredentials()).readFromEntityID(entityID, versionID, false);
 
         if (representationID == null) {
             return Response.ok().entity(XmlUtils.toBytes(entity.getDescriptive())).build();
@@ -206,7 +206,7 @@ public class MetadataService {
                                                      ParsingException,
                                                      CommunicationException,
                                                      NotFoundException, VersioningException {
-        EntityManipulator instance = EntityInterfaceFactory.getInstance();
+        EntityManipulator instance = EntityInterfaceFactory.getInstance(getCredentials());
         IntellectualEntity entity = instance.readFromEntityID(entityID, null, false);
         IntellectualEntity newEntity = new IntellectualEntity.Builder(entity).descriptive(XmlUtils.toObject(contents))
                                                                              .build();

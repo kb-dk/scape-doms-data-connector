@@ -1,7 +1,7 @@
 package eu.scape_project.dataconnetor.doms.service;
 
-import eu.scape_project.dataconnetor.doms.EntityManipulator;
 import eu.scape_project.dataconnetor.doms.EntityInterfaceFactory;
+import eu.scape_project.dataconnetor.doms.EntityManipulator;
 import eu.scape_project.dataconnetor.doms.XmlUtils;
 import eu.scape_project.dataconnetor.doms.exceptions.CommunicationException;
 import eu.scape_project.dataconnetor.doms.exceptions.ConfigurationException;
@@ -16,7 +16,8 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Response;
 
 @Path("/lifecycle/")
-public class LifeCycleService  {
+public class LifeCycleService extends AbstractService {
+;
     /**
      * 5.4.13
      * Retrieve the lifecycle status of an entity
@@ -44,7 +45,7 @@ public class LifeCycleService  {
                              CommunicationException,
                              NotFoundException,
                              ConfigurationException {
-        EntityManipulator instance = EntityInterfaceFactory.getInstance();
+        EntityManipulator instance = EntityInterfaceFactory.getInstance(getCredentials());
         IntellectualEntity entity = instance.readFromEntityID(entityID, null, false);
 
         return Response.ok().entity(XmlUtils.toString(entity.getLifecycleState())).build();

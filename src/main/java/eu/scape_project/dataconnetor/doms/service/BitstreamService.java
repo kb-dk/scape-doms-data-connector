@@ -3,7 +3,7 @@ package eu.scape_project.dataconnetor.doms.service;
 import javax.ws.rs.Path;
 
 @Path("/bitstream")
-public class BitstreamService {
+public class BitstreamService extends AbstractService{
 
     //BITSTREAMS HAVE NO USEFUL IDENTIFIER IN THE DATAMODEL SO THIS CANNOT BE SUPPORTED
 

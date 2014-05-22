@@ -1,7 +1,7 @@
 package eu.scape_project.dataconnetor.doms.service;
 
-import eu.scape_project.dataconnetor.doms.EntityManipulator;
 import eu.scape_project.dataconnetor.doms.EntityInterfaceFactory;
+import eu.scape_project.dataconnetor.doms.EntityManipulator;
 import eu.scape_project.dataconnetor.doms.exceptions.CommunicationException;
 import eu.scape_project.dataconnetor.doms.exceptions.ConfigurationException;
 import eu.scape_project.dataconnetor.doms.exceptions.NotFoundException;
@@ -16,7 +16,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Response;
 
 @Path("/file")
-public class FileService  {
+public class FileService extends AbstractService {
 
     /**
      * 5.4.8 Retrieve a File
@@ -56,7 +56,7 @@ public class FileService  {
                               ParsingException,
                               UnauthorizedException,
                               CommunicationException {
-        EntityManipulator instance = EntityInterfaceFactory.getInstance();
+        EntityManipulator instance = EntityInterfaceFactory.getInstance(getCredentials());
         IntellectualEntity entity = instance.readFromEntityID(entityID, versionID, false);
         for (Representation representation : entity.getRepresentations()) {
             if (representation.getIdentifier().getValue().equals(representationID)) {

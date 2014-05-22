@@ -1,7 +1,7 @@
 package eu.scape_project.dataconnetor.doms.service;
 
-import eu.scape_project.dataconnetor.doms.EntityManipulator;
 import eu.scape_project.dataconnetor.doms.EntityInterfaceFactory;
+import eu.scape_project.dataconnetor.doms.EntityManipulator;
 import eu.scape_project.dataconnetor.doms.XmlUtils;
 import eu.scape_project.dataconnetor.doms.exceptions.CommunicationException;
 import eu.scape_project.dataconnetor.doms.exceptions.ConfigurationException;
@@ -21,7 +21,8 @@ import java.io.InputStream;
 import java.util.List;
 
 @Path("/representation")
-public class RepresentationService  {
+public class RepresentationService extends AbstractService {
+
 
     //TODO where are the version ids?
 
@@ -56,7 +57,7 @@ public class RepresentationService  {
                                      ParsingException,
                                      CommunicationException,
                                      NotFoundException {
-        EntityManipulator instance = EntityInterfaceFactory.getInstance();
+        EntityManipulator instance = EntityInterfaceFactory.getInstance(getCredentials());
         IntellectualEntity entity = instance.readFromEntityID(entityID, null, false);
 
         for (Representation representation : entity.getRepresentations()) {
@@ -97,7 +98,7 @@ public class RepresentationService  {
                                                            ParsingException,
                                                            CommunicationException,
                                                            NotFoundException, VersioningException {
-        EntityManipulator instance = EntityInterfaceFactory.getInstance();
+        EntityManipulator instance = EntityInterfaceFactory.getInstance(getCredentials());
         IntellectualEntity entity = instance.readFromEntityID(entityID, null, false);
         List<Representation> representations = entity.getRepresentations();
         for (int i = 0; i < representations.size(); i++) {

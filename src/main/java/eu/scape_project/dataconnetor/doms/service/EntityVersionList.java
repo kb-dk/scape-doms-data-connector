@@ -1,6 +1,8 @@
 package eu.scape_project.dataconnetor.doms.service;
 
-public class EntityVersionList {
+public class EntityVersionList extends AbstractService {
+
+
 
     /**
      * 5.4.7 Retrieve a version list for an Intellectual Entity
