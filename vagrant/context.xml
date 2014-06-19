@@ -1,7 +1,7 @@
 <Context>
 
-    <Parameter name="doms.url" value="http://doms-testbed:7880/fedora" override="false"/>
-    <Parameter name="pidgenerator.url" value="http://doms-testbed:7880/pidgenerator-service" override="false"/>
+    <Parameter name="doms.url" value="http://achernar:7880/fedora" override="false"/>
+    <Parameter name="pidgenerator.url" value="http://achernar:7880/pidgenerator-service" override="false"/>
 
     <Parameter name="scape.contentModel" value="doms:ContentModel_Jpeg2000File" override="false"/>
 
