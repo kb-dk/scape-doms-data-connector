@@ -218,9 +218,11 @@ public class EntityManipulator {
     }
 
     private Object findContents(String representationTechnicalDatastream, TechnicalMetadataList technical) {
-        for (TechnicalMetadata technicalMetadata : technical.getContent()) {
-            if (technicalMetadata.getId().equals(representationTechnicalDatastream)) {
-                return technicalMetadata.getContents();
+        if (technical != null) {
+            for (TechnicalMetadata technicalMetadata : technical.getContent()) {
+                if (technicalMetadata.getId().equals(representationTechnicalDatastream)) {
+                    return technicalMetadata.getContents();
+                }
             }
         }
         return null;
