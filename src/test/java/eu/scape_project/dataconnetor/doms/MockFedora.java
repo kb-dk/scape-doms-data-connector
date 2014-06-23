@@ -139,7 +139,7 @@ public class MockFedora {
                                                               BackendInvalidResourceException {
         when(
                 fedora.getXMLDatastreamContents(
-                        eq(scape_contentModel_pid), eq(DSCompositeModel.DS_COMPOSITE_MODEL))).thenReturn(
+                        eq(scape_contentModel_pid), eq(DSCompositeModel.DS_COMPOSITE_MODEL),anyLong())).thenReturn(
                 getDsComp());
 
     }
@@ -259,7 +259,7 @@ public class MockFedora {
                "                    </premis:rights>"));
     }
 
-    static String getEmptyTextMD() throws ParsingException {
+     static String getEmptyTextMD() throws ParsingException {
         return XmlUtils.toString(XmlUtils.toObject( "<textmd:textMD xmlns:textmd=\"info:lc/xmlns/textmd-v3\">" +
                "<textmd:encoding>" +
                "<textmd:encoding_platform linebreak=\"LF\"/>" +

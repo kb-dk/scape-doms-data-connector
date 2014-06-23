@@ -16,7 +16,6 @@ import org.w3c.dom.NodeList;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Pattern;
 
 public class TypeUtils {
     public static final String NAMESPACE_DC = "http://purl.org/dc/elements/1.1/";
@@ -31,45 +30,59 @@ public class TypeUtils {
     }
 
     static String formatEntityIdentifier(Identifier identifier) {
-        return ENTITY + identifier.getValue();
+        if (!identifier.getValue().startsWith(ENTITY)) {
+            return ENTITY + identifier.getValue();
+        } else {
+            return identifier.getValue();
+        }
     }
 
     static String formatRepresentationIdentifier(Identifier identifier) {
-        return REPRESENTATION + identifier.getValue();
-
+        if (!identifier.getValue().startsWith(REPRESENTATION)) {
+            return REPRESENTATION + identifier.getValue();
+        } else {
+            return identifier.getValue();
+        }
     }
 
     static String formatFileIdentifier(Identifier identifier) {
-        return FILE + identifier.getValue();
+        if (!identifier.getValue().startsWith(FILE)) {
+            return FILE + identifier.getValue();
+        } else {
+            return identifier.getValue();
+        }
     }
 
-    static String pickFileIdentifier(List<String> identifiers) {
+    static String pickFileIdentifier(String pid, List<String> identifiers) {
         for (String identifier : identifiers) {
             if (identifier.startsWith(FILE)) {
-                return identifier.replaceFirst("^" + Pattern.quote(FILE), "");
+                return identifier;
+                //return identifier.replaceFirst("^" + Pattern.quote(FILE), "");
             }
         }
-        return null;
+        return FILE + pid;
     }
 
 
-    static String pickRepresentationIdentifier(List<String> identifiers) {
+    static String pickRepresentationIdentifier(String pid, List<String> identifiers) {
         for (String identifier : identifiers) {
             if (identifier.startsWith(REPRESENTATION)) {
-                return identifier.replaceFirst("^" + Pattern.quote(REPRESENTATION), "");
+                return identifier;
+                //return identifier.replaceFirst("^" + Pattern.quote(REPRESENTATION), "");
             }
         }
-        return null;
+        return REPRESENTATION + pid;
     }
 
 
-    static String pickEntityIdentifier(List<String> identifiers) {
+    static String pickEntityIdentifier(String pid, List<String> identifiers) {
         for (String identifier : identifiers) {
             if (identifier.startsWith(ENTITY)) {
-                return identifier.replaceFirst("^" + Pattern.quote(ENTITY), "");
+                return identifier;
+                //return identifier.replaceFirst("^" + Pattern.quote(ENTITY), "");
             }
         }
-        return null;
+        return ENTITY + pid;
     }
 
 

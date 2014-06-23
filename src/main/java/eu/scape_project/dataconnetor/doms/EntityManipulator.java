@@ -93,10 +93,7 @@ public class EntityManipulator {
             //Build the entity
             IntellectualEntity.Builder builder = new IntellectualEntity.Builder();
 
-            String entityIdentifier = TypeUtils.pickEntityIdentifier(identifiers);
-            if (entityIdentifier == null){
-                entityIdentifier = pid;
-            }
+            String entityIdentifier = TypeUtils.pickEntityIdentifier(pid,identifiers);
             builder.identifier(new Identifier(entityIdentifier));
             builder.descriptive(getIfExists(pid, fedora, profile, model.getDescriptive(),timestamp));
             builder.lifecycleState((LifecycleState) getIfExists(pid, fedora, profile, model.getLifeCycle(),timestamp));
@@ -111,10 +108,7 @@ public class EntityManipulator {
 
             //Build the representation
             Representation.Builder rep_builder = new Representation.Builder();
-            String representationIdentifier = TypeUtils.pickRepresentationIdentifier(identifiers);
-            if (representationIdentifier == null){
-                representationIdentifier = pid;
-            }
+            String representationIdentifier = TypeUtils.pickRepresentationIdentifier(pid,identifiers);
             rep_builder.identifier(new Identifier(representationIdentifier));
             for (String repTechDatastream : model.getRepresentationTechnical()) {
                 rep_builder.technical(repTechDatastream, getIfExists(pid, fedora, profile, repTechDatastream,timestamp));
@@ -127,10 +121,7 @@ public class EntityManipulator {
 
             //Build the File
             File.Builder file_builder = new File.Builder();
-            String fileIdentifier = TypeUtils.pickFileIdentifier(identifiers);
-            if (fileIdentifier == null){
-                fileIdentifier = pid;
-            }
+            String fileIdentifier = TypeUtils.pickFileIdentifier(pid,identifiers);
             file_builder.identifier(new Identifier(fileIdentifier));
             for (String fileTechDatastream : model.getFileTechnical()) {
                 file_builder.technical(fileTechDatastream, getIfExists(pid, fedora, profile, fileTechDatastream,timestamp));

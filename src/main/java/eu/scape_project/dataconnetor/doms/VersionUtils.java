@@ -65,6 +65,9 @@ public class VersionUtils {
         VersionsType versions = null;
         try {
             String versionsXml = fedora.getXMLDatastreamContents(pid, EntityManipulator.SCAPE_VERSIONS, null);
+            if (versionsXml == null){
+                return new VersionsType();
+            }
             versions = getJaxbContext().createUnmarshaller().unmarshal(
                     new StreamSource(new StringReader(versionsXml)), VersionsType.class).getValue();
 
